@@ -11,10 +11,13 @@
 namespace nap
 {
 	//////////////////////////////////////////////////////////////////////////
-
+    // forward declares
+    class RealSenseDevice;
 
 	class NAPAPI RealSenseService : public Service
 	{
+        friend class RealSenseDevice;
+
 		RTTI_ENABLE(Service)
 	public:
 
@@ -51,5 +54,10 @@ namespace nap
 		 */
 		void shutdown() override;
 	private:
+        void registerDevice(RealSenseDevice* device);
+
+        void removeDevice(RealSenseDevice* device);
+
+        std::vector<RealSenseDevice*> mDevices;
 	};
 }
