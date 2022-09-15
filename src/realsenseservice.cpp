@@ -8,6 +8,8 @@
 #include <iostream>
 #include <utility/stringutils.h>
 
+#include <librealsense2/rs.hpp> // Include RealSense Cross Platform API
+
 // Local Includes
 #include "realsenseservice.h"
 
