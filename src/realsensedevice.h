@@ -13,14 +13,28 @@
 #include <future>
 #include <atomic>
 
+// Local includes
+#include "realsensetypes.h"
+
 namespace nap
 {
     //////////////////////////////////////////////////////////////////////////
 
     // forward declares
     class RealSenseService;
+    class RealSensePipeLine;
+    class RealSenseFrameListenerComponentInstance;
 
-    class NAPAPI RealSenseDevice : public Device
+    class NAPAPI RealSenseStreamDescription : public Resource
+    {
+    RTTI_ENABLE(Resource)
+    public:
+        ERealSenseStreamFormat mFormat = ERealSenseStreamFormat::RGBA8;
+
+        virtual ERealSenseFrameTypes getStreamType() const = 0;
+    };
+
+    class NAPAPI RealSenseDevice final : public Device
     {
     RTTI_ENABLE(Device)
     public:
@@ -32,22 +46,42 @@ namespace nap
 
         virtual void onDestroy() override final;
 
-        virtual void update(double deltaTime) = 0;
-    protected:
-        virtual bool onStart(utility::ErrorState& errorState) = 0;
+        void update(double deltaTime);
 
-        virtual void onStop() = 0;
+        // properties
+        std::string mSerial;
+        int mMaxFrameSize = 5;
+        std::vector<ResourcePtr<RealSenseStreamDescription>> mStreams;
 
-        virtual void onProcess() = 0;
+        void addFrameListener(RealSenseFrameListenerComponentInstance* frameListener);
 
+        void removeFrameListener(RealSenseFrameListenerComponentInstance* frameListener);
     private:
         void process();
 
         std::future<void>		mCaptureTask;
-        std::mutex				mCaptureMutex;
         std::condition_variable	mCaptureCondition;
         std::atomic_bool        mRun = { false };
 
         RealSenseService&       mService;
+        std::unique_ptr<RealSensePipeLine> mPipeLine;
+
+        std::unordered_map<ERealSenseFrameTypes, std::vector<RealSenseFrameListenerComponentInstance*>> mFrameListeners;
     };
+
+    class NAPAPI RealSenseColorStream : public RealSenseStreamDescription
+    {
+    RTTI_ENABLE(RealSenseStreamDescription)
+    public:
+        virtual ERealSenseFrameTypes getStreamType() const override;
+    };
+
+    class NAPAPI RealSenseDepthStream : public RealSenseStreamDescription
+    {
+    RTTI_ENABLE(RealSenseStreamDescription)
+    public:
+        virtual ERealSenseFrameTypes getStreamType() const override;
+    };
+
+    using RealSenseDeviceObjectCreator = rtti::ObjectCreator<RealSenseDevice, RealSenseService>;
 }

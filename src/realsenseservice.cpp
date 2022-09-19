@@ -4,7 +4,6 @@
 
 // Local Includes
 #include "realsensedevice.h"
-#include "realsensecamera.h"
 
 // External Includes
 #include <nap/core.h>
@@ -14,6 +13,9 @@
 
 // Local Includes
 #include "realsenseservice.h"
+
+// RealSense includes
+#include <librealsense2/rs.hpp> // Include RealSense Cross Platform API
 
 RTTI_BEGIN_CLASS_NO_DEFAULT_CONSTRUCTOR(nap::RealSenseService)
 RTTI_CONSTRUCTOR(nap::ServiceConfiguration*)
@@ -33,12 +35,25 @@ namespace nap
 
 	void RealSenseService::registerObjectCreators(rtti::Factory& factory)
 	{
-        factory.addObjectCreator(std::make_unique<RealSenseCameraObjectCreator>(*this));
+        factory.addObjectCreator(std::make_unique<RealSenseDeviceObjectCreator>(*this));
 	}
 
 
 	bool RealSenseService::init(nap::utility::ErrorState& errorState)
 	{
+        rs2::context ctx;
+        auto list = ctx.query_devices(); // Get a snapshot of currently connected devices
+
+        nap::Logger::info("There are %d connected RealSense devices.", list.size());
+        for(size_t i = 0 ; i < list.size(); i++)
+        {
+            rs2::device device = list[i];
+
+            nap::Logger::info("RealSense device %i, an %s", i,  device.get_info(RS2_CAMERA_INFO_NAME));
+            nap::Logger::info("    Serial number: %s", device.get_info(RS2_CAMERA_INFO_SERIAL_NUMBER));
+            nap::Logger::info("    Firmware version: %s", device.get_info(RS2_CAMERA_INFO_FIRMWARE_VERSION));
+        }
+
 		return true;
 	}
 
