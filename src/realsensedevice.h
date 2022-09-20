@@ -15,6 +15,7 @@
 
 // Local includes
 #include "realsensetypes.h"
+#include "realsenseframesetlistenercomponent.h"
 
 namespace nap
 {
@@ -23,7 +24,7 @@ namespace nap
     // forward declares
     class RealSenseService;
     class RealSensePipeLine;
-    class RealSenseFrameListenerComponentInstance;
+    class RealSenseFrameSetListenerComponentInstance;
 
     class NAPAPI RealSenseStreamDescription final : public Resource
     {
@@ -52,9 +53,9 @@ namespace nap
         int mMaxFrameSize = 5;
         std::vector<ResourcePtr<RealSenseStreamDescription>> mStreams;
 
-        void addFrameListener(RealSenseFrameListenerComponentInstance* frameListener);
+        void addFrameSetListener(RealSenseFrameSetListenerComponentInstance *frameSetListener);
 
-        void removeFrameListener(RealSenseFrameListenerComponentInstance* frameListener);
+        void removeFrameSetListener(RealSenseFrameSetListenerComponentInstance* frameSetListener);
     private:
         void process();
 
@@ -62,9 +63,11 @@ namespace nap
         std::atomic_bool        mRun = { false };
 
         RealSenseService&       mService;
-        std::unique_ptr<RealSensePipeLine> mPipeLine;
 
-        std::unordered_map<ERealSenseStreamType, std::vector<RealSenseFrameListenerComponentInstance*>> mFrameListeners;
+        struct Impl;
+        std::unique_ptr<Impl>   mImplementation;
+
+        std::vector<RealSenseFrameSetListenerComponentInstance*> mFrameSetListeners;
     };
 
     using RealSenseDeviceObjectCreator = rtti::ObjectCreator<RealSenseDevice, RealSenseService>;

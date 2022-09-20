@@ -1,6 +1,6 @@
 #include "realsensedevice.h"
 #include "realsenseservice.h"
-#include "realsenseframelistenercomponent.h"
+#include "realsenseframesetlistenercomponent.h"
 
 // RealSense includes
 #include <librealsense2/rs.hpp> // Include RealSense Cross Platform API
@@ -19,7 +19,7 @@ RTTI_END_CLASS
 
 namespace nap
 {
-    class RealSensePipeLine
+    struct RealSenseDevice::Impl
     {
     public:
         // Declare RealSense pipeline, encapsulating the actual device and sensors
@@ -38,8 +38,8 @@ namespace nap
     {
         if(!mRun.load())
         {
-            mPipeLine = std::make_unique<RealSensePipeLine>();
-            mPipeLine->mFrameQueue = rs2::frame_queue(mMaxFrameSize);
+            mImplementation = std::make_unique<Impl>();
+            mImplementation->mFrameQueue = rs2::frame_queue(mMaxFrameSize);
 
             if(!errorState.check(mService.hasSerialNumber(mSerial),
                                  utility::stringFormat("Device with serial number %s is not connected", mSerial.c_str())))
@@ -72,7 +72,7 @@ namespace nap
 
             try
             {
-                mPipeLine->mPipe.start(cfg);
+                mImplementation->mPipe.start(cfg);
             }catch(const rs2::error& e)
             {
                 errorState.fail(utility::stringFormat("RealSense error calling %s(%s)\n     %s,",
@@ -107,7 +107,7 @@ namespace nap
             if(mCaptureTask.valid())
                 mCaptureTask.wait();
 
-            mPipeLine->mPipe.stop();
+            mImplementation->mPipe.stop();
 
             mService.removeDevice(this);
         }
@@ -122,8 +122,14 @@ namespace nap
     void RealSenseDevice::update(double deltaTime)
     {
         rs2::frameset data;
-        if(mPipeLine->mFrameQueue.poll_for_frame(&data))
+        if(mImplementation->mFrameQueue.poll_for_frame(&data))
         {
+            for(auto* frameset_listener : mFrameSetListeners)
+            {
+                frameset_listener->trigger(data);
+            }
+
+            /*
             for(const auto& frame : data)
             {
                 auto stream_type = static_cast<ERealSenseStreamType>(frame.get_profile().stream_type());
@@ -135,32 +141,24 @@ namespace nap
                         listener->trigger(frame);
                     }
                 }
-            }
+            }*/
         }
     }
 
 
-    void RealSenseDevice::addFrameListener(RealSenseFrameListenerComponentInstance* frameListener)
+    void RealSenseDevice::addFrameSetListener(RealSenseFrameSetListenerComponentInstance* frameSetListener)
     {
-        if(mFrameListeners.find(frameListener->getStreamType()) == mFrameListeners.end())
-        {
-            mFrameListeners.emplace(frameListener->getStreamType(), std::vector<RealSenseFrameListenerComponentInstance*>());
-        }
-
-        auto& listeners = mFrameListeners[frameListener->getStreamType()];
-        auto it = std::find(listeners.begin(), listeners.end(), frameListener);
-        assert(it == listeners.end()); // device already exists
-        listeners.emplace_back(frameListener);
+        auto it = std::find(mFrameSetListeners.begin(), mFrameSetListeners.end(), frameSetListener);
+        assert(it == mFrameSetListeners.end()); // device already exists
+        mFrameSetListeners.emplace_back(frameSetListener);
     }
 
 
-    void RealSenseDevice::removeFrameListener(RealSenseFrameListenerComponentInstance* frameListener)
+    void RealSenseDevice::removeFrameSetListener(RealSenseFrameSetListenerComponentInstance* frameSetListener)
     {
-        assert(mFrameListeners.find(frameListener->getStreamType()) != mFrameListeners.end());
-        auto& listeners = mFrameListeners[frameListener->getStreamType()];
-        auto it = std::find(listeners.begin(), listeners.end(), frameListener);
-        assert(it != listeners.end()); // device does not exist
-        listeners.erase(it);
+        auto it = std::find(mFrameSetListeners.begin(), mFrameSetListeners.end(), frameSetListener);
+        assert(it != mFrameSetListeners.end()); // device does not exist
+        mFrameSetListeners.erase(it);
     }
 
 
@@ -169,9 +167,9 @@ namespace nap
         while(mRun.load())
         {
             rs2::frameset data;
-            if(mPipeLine->mPipe.poll_for_frames(&data))
+            if(mImplementation->mPipe.poll_for_frames(&data))
             {
-                mPipeLine->mFrameQueue.enqueue(data);
+                mImplementation->mFrameQueue.enqueue(data);
             }
         }
     }

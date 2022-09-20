@@ -1,32 +1,34 @@
 #pragma once
 
-#include "realsenseframelistenercomponent.h"
+#include "realsenseframesetlistenercomponent.h"
 
 namespace nap
 {
     class RealSenseRenderFrameComponentInstance;
 
-    class NAPAPI RealSenseRenderFrameComponent : public RealSenseFrameListenerComponent
+    class NAPAPI RealSenseRenderFrameComponent : public RealSenseFrameSetListenerComponent
     {
-    RTTI_ENABLE(RealSenseFrameListenerComponent)
+    RTTI_ENABLE(RealSenseFrameSetListenerComponent)
     DECLARE_COMPONENT(RealSenseRenderFrameComponent, RealSenseRenderFrameComponentInstance)
     public:
+        ERealSenseStreamType mStreamType = ERealSenseStreamType::REALSENSE_STREAMTYPE_COLOR;
         ResourcePtr<RenderTexture2D> mRenderTexture;
     };
 
-    class NAPAPI RealSenseRenderFrameComponentInstance : public RealSenseFrameListenerComponentInstance
+    class NAPAPI RealSenseRenderFrameComponentInstance : public RealSenseFrameSetListenerComponentInstance
     {
-    RTTI_ENABLE(RealSenseFrameListenerComponentInstance)
+    RTTI_ENABLE(RealSenseFrameSetListenerComponentInstance)
     public:
         RealSenseRenderFrameComponentInstance(EntityInstance& entity, Component& resource) :
-            RealSenseFrameListenerComponentInstance(entity, resource)     {}
-
-        RenderTexture2D* mRenderTexture;
+            RealSenseFrameSetListenerComponentInstance(entity, resource)     {}
     protected:
         bool onInit(utility::ErrorState& errorState) override;
 
         void destroy() override;
 
-        void onTrigger(const rs2::frame& frame);
+        void onTrigger(const rs2::frameset& frame);
+    private:
+        RenderTexture2D* mRenderTexture;
+        ERealSenseStreamType mStreamType;
     };
 }

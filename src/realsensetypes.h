@@ -7,15 +7,15 @@ namespace nap
     enum NAPAPI ERealSenseStreamType : int
     {
         REALSENSE_STREAMTYPE_ANY            = 0,
-        REALSENSE_STREAMTYPE_DEPTH          = 1,     /**< Native stream of depth data produced by RealSense device */
-        REALSENSE_STREAMTYPE_COLOR          = 2,     /**< Native stream of color data captured by RealSense device */
-        REALSENSE_STREAMTYPE_INFRARED       = 3,     /**< Native stream of infrared data captured by RealSense device */
-        REALSENSE_STREAMTYPE_FISH_EYE       = 4,     /**< Native stream of fish-eye (wide) data captured from the dedicate motion camera */
-        REALSENSE_STREAMTYPE_GYRO           = 5,     /**< Native stream of gyroscope motion data produced by RealSense device */
-        REALSENSE_STREAMTYPE_ACCEL          = 6,     /**< Native stream of accelerometer motion data produced by RealSense device */
-        REALSENSE_STREAMTYPE_GPIO           = 7,     /**< Signals from external device connected through GPIO */
-        REALSENSE_STREAMTYPE_POSE           = 8,     /**< 6 Degrees of Freedom pose data, calculated by RealSense device */
-        REALSENSE_STREAMTYPE_CONFIDENCE     = 9      /**< 4 bit per-pixel depth confidence level */
+        REALSENSE_STREAMTYPE_DEPTH          = 1, /**< Native stream of depth data produced by RealSense device */
+        REALSENSE_STREAMTYPE_COLOR          = 2, /**< Native stream of color data captured by RealSense device */
+        REALSENSE_STREAMTYPE_INFRARED       = 3, /**< Native stream of infrared data captured by RealSense device */
+        REALSENSE_STREAMTYPE_FISH_EYE       = 4, /**< Native stream of fish-eye (wide) data captured from the dedicate motion camera */
+        REALSENSE_STREAMTYPE_GYRO           = 5, /**< Native stream of gyroscope motion data produced by RealSense device */
+        REALSENSE_STREAMTYPE_ACCEL          = 6, /**< Native stream of accelerometer motion data produced by RealSense device */
+        REALSENSE_STREAMTYPE_GPIO           = 7, /**< Signals from external device connected through GPIO */
+        REALSENSE_STREAMTYPE_POSE           = 8, /**< 6 Degrees of Freedom pose data, calculated by RealSense device */
+        REALSENSE_STREAMTYPE_CONFIDENCE     = 9  /**< 4 bit per-pixel depth confidence level */
     };
 
     enum NAPAPI ERealSenseStreamFormat : int
