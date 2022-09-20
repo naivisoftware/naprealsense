@@ -9,11 +9,12 @@
 #include <nap/resourceptr.h>
 #include <entity.h>
 #include <rendertexture2d.h>
+#include <nap/signalslot.h>
 
 // Local includes
 #include "realsensetypes.h"
 
-// rs2 frame forward declare
+// rs2 frame forward declaration
 namespace rs2
 {
     class frame;
@@ -22,12 +23,16 @@ namespace rs2
 namespace nap
 {
     class RealSenseDevice;
+    class RealSenseStreamDescription;
+    class RealSenseFrameListenerComponentInstance;
 
     class NAPAPI RealSenseFrameListenerComponent : public Component
     {
         RTTI_ENABLE(Component)
+        DECLARE_COMPONENT(RealSenseFrameListenerComponent, RealSenseFrameListenerComponentInstance)
     public:
         ResourcePtr<RealSenseDevice> mDevice; ///< Property: 'Device' the device this component receives frames from
+        ERealSenseStreamType mStreamType = ERealSenseStreamType::REALSENSE_STREAMTYPE_COLOR;
     };
 
     class NAPAPI RealSenseFrameListenerComponentInstance : public ComponentInstance
@@ -51,71 +56,17 @@ namespace nap
 
         virtual void onDestroy() override final;
 
+        Signal<const rs2::frame&> frameReceived;
     protected:
-        virtual bool onInit(utility::ErrorState& errorState) = 0;
+        virtual bool onInit(utility::ErrorState& errorState);
 
-        virtual void destroy() = 0;
+        virtual void destroy();
 
-        virtual void trigger(const rs2::frame& frame) = 0;
+        void trigger(const rs2::frame& frame);
 
-        virtual ERealSenseFrameTypes getFrameType() const = 0;
+        ERealSenseStreamType getStreamType() const{ return mStreamType; }
 
         RealSenseDevice* mDevice;
-    };
-
-    class RealSenseRenderVideoFrameComponentInstance;
-
-    class NAPAPI RealSenseRenderVideoFrameComponent : public RealSenseFrameListenerComponent
-    {
-        RTTI_ENABLE(RealSenseFrameListenerComponent)
-        DECLARE_COMPONENT(RealSenseRenderVideoFrameComponent, RealSenseRenderVideoFrameComponentInstance)
-    public:
-        ResourcePtr<RenderTexture2D> mRenderTexture;
-    };
-
-    class NAPAPI RealSenseRenderVideoFrameComponentInstance : public RealSenseFrameListenerComponentInstance
-    {
-        RTTI_ENABLE(RealSenseFrameListenerComponentInstance)
-    public:
-        RealSenseRenderVideoFrameComponentInstance(EntityInstance& entity, Component& resource) :
-            RealSenseFrameListenerComponentInstance(entity, resource)     {}
-
-        RenderTexture2D* mRenderTexture;
-    protected:
-        bool onInit(utility::ErrorState& errorState) override;
-
-        void destroy() override;
-
-        virtual void trigger(const rs2::frame& frame) override;
-
-        virtual ERealSenseFrameTypes getFrameType() const override;
-    };
-
-    class RealSenseRenderDepthFrameComponentInstance;
-
-    class NAPAPI RealSenseRenderDepthFrameComponent : public RealSenseFrameListenerComponent
-    {
-    RTTI_ENABLE(RealSenseFrameListenerComponent)
-    DECLARE_COMPONENT(RealSenseRenderDepthFrameComponent, RealSenseRenderDepthFrameComponentInstance)
-    public:
-        ResourcePtr<RenderTexture2D> mRenderTexture;
-    };
-
-    class NAPAPI RealSenseRenderDepthFrameComponentInstance : public RealSenseFrameListenerComponentInstance
-    {
-    RTTI_ENABLE(RealSenseFrameListenerComponentInstance)
-    public:
-        RealSenseRenderDepthFrameComponentInstance(EntityInstance& entity, Component& resource) :
-            RealSenseFrameListenerComponentInstance(entity, resource)     {}
-
-        RenderTexture2D* mRenderTexture;
-    protected:
-        bool onInit(utility::ErrorState& errorState) override;
-
-        void destroy() override;
-
-        virtual void trigger(const rs2::frame& frame) override;
-
-        virtual ERealSenseFrameTypes getFrameType() const override;
+        ERealSenseStreamType mStreamType;
     };
 }

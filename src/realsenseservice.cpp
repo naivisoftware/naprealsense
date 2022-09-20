@@ -52,6 +52,8 @@ namespace nap
             nap::Logger::info("RealSense device %i, an %s", i,  device.get_info(RS2_CAMERA_INFO_NAME));
             nap::Logger::info("    Serial number: %s", device.get_info(RS2_CAMERA_INFO_SERIAL_NUMBER));
             nap::Logger::info("    Firmware version: %s", device.get_info(RS2_CAMERA_INFO_FIRMWARE_VERSION));
+
+            mConnectedSerialNumbers.emplace_back(std::string(device.get_info(RS2_CAMERA_INFO_SERIAL_NUMBER)));
         }
 
 		return true;
@@ -72,11 +74,39 @@ namespace nap
 	}
 
 
-    void RealSenseService::registerDevice(nap::RealSenseDevice *device)
+    bool RealSenseService::registerDevice(nap::RealSenseDevice *device, utility::ErrorState& errorState)
     {
         auto it = std::find(mDevices.begin(), mDevices.end(), device);
-        assert(it == mDevices.end()); // device already exists
+        if(it != mDevices.end())
+        {
+            errorState.fail("Device already registered");
+            return false;
+        }
+        for(auto* other : mDevices)
+        {
+            if(!other->mSerial.empty() && !device->mSerial.empty())
+            {
+                if(other->mSerial==device->mSerial)
+                {
+                    errorState.fail(utility::stringFormat("Device with serial %s already registered", device->mSerial.c_str()));
+                    return false;
+                }
+            }
+        }
+
         mDevices.emplace_back(device);
+
+        return true;
+    }
+
+
+    bool RealSenseService::hasSerialNumber(const std::string& serialNumber) const
+    {
+        auto it = std::find_if(mConnectedSerialNumbers.begin(), mConnectedSerialNumbers.end(), [this, serialNumber](const std::string& other)
+        {
+            return other == serialNumber;
+        });
+        return it != mConnectedSerialNumbers.end();
     }
 
 

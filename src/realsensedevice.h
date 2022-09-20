@@ -25,13 +25,12 @@ namespace nap
     class RealSensePipeLine;
     class RealSenseFrameListenerComponentInstance;
 
-    class NAPAPI RealSenseStreamDescription : public Resource
+    class NAPAPI RealSenseStreamDescription final : public Resource
     {
     RTTI_ENABLE(Resource)
     public:
-        ERealSenseStreamFormat mFormat = ERealSenseStreamFormat::RGBA8;
-
-        virtual ERealSenseFrameTypes getStreamType() const = 0;
+        ERealSenseStreamFormat  mFormat     = ERealSenseStreamFormat::REALSENSE_FORMAT_RGBA8;
+        ERealSenseStreamType    mStream     = ERealSenseStreamType::REALSENSE_STREAMTYPE_COLOR;
     };
 
     class NAPAPI RealSenseDevice final : public Device
@@ -60,27 +59,12 @@ namespace nap
         void process();
 
         std::future<void>		mCaptureTask;
-        std::condition_variable	mCaptureCondition;
         std::atomic_bool        mRun = { false };
 
         RealSenseService&       mService;
         std::unique_ptr<RealSensePipeLine> mPipeLine;
 
-        std::unordered_map<ERealSenseFrameTypes, std::vector<RealSenseFrameListenerComponentInstance*>> mFrameListeners;
-    };
-
-    class NAPAPI RealSenseColorStream : public RealSenseStreamDescription
-    {
-    RTTI_ENABLE(RealSenseStreamDescription)
-    public:
-        virtual ERealSenseFrameTypes getStreamType() const override;
-    };
-
-    class NAPAPI RealSenseDepthStream : public RealSenseStreamDescription
-    {
-    RTTI_ENABLE(RealSenseStreamDescription)
-    public:
-        virtual ERealSenseFrameTypes getStreamType() const override;
+        std::unordered_map<ERealSenseStreamType, std::vector<RealSenseFrameListenerComponentInstance*>> mFrameListeners;
     };
 
     using RealSenseDeviceObjectCreator = rtti::ObjectCreator<RealSenseDevice, RealSenseService>;

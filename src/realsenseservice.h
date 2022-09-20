@@ -53,11 +53,17 @@ namespace nap
 		 * called when service is shutdown, deletes all tweens
 		 */
 		void shutdown() override;
+
+        bool hasSerialNumber(const std::string& serialNumber) const;
+
+        const std::vector<std::string>& getConnectedSerialNumbers() const{ return mConnectedSerialNumbers; }
 	private:
-        void registerDevice(RealSenseDevice* device);
+        bool registerDevice(RealSenseDevice* device, utility::ErrorState& errorState);
 
         void removeDevice(RealSenseDevice* device);
 
         std::vector<RealSenseDevice*> mDevices;
+
+        std::vector<std::string> mConnectedSerialNumbers;
 	};
 }

@@ -5,25 +5,10 @@
 // RealSense includes
 #include <librealsense2/rs.hpp> // Include RealSense Cross Platform API
 
-RTTI_BEGIN_CLASS_NO_DEFAULT_CONSTRUCTOR(nap::RealSenseStreamDescription)
-    RTTI_PROPERTY("StreamFormat", &nap::RealSenseStreamDescription::mFormat, nap::rtti::EPropertyMetaData::Default)
+RTTI_BEGIN_CLASS(nap::RealSenseStreamDescription)
+    RTTI_PROPERTY("Format", &nap::RealSenseStreamDescription::mFormat, nap::rtti::EPropertyMetaData::Default)
+    RTTI_PROPERTY("Stream", &nap::RealSenseStreamDescription::mStream, nap::rtti::EPropertyMetaData::Default)
 RTTI_END_CLASS
-
-RTTI_BEGIN_CLASS(nap::RealSenseDepthStream)
-RTTI_END_CLASS
-
-RTTI_BEGIN_CLASS(nap::RealSenseColorStream)
-RTTI_END_CLASS
-
-RTTI_BEGIN_ENUM(nap::ERealSenseStreamFormat)
-    RTTI_ENUM_VALUE(nap::ERealSenseStreamFormat::RGBA8, "RGBA8"),
-    RTTI_ENUM_VALUE(nap::ERealSenseStreamFormat::Z16, "Z16")
-RTTI_END_ENUM
-
-RTTI_BEGIN_ENUM(nap::ERealSenseFrameTypes)
-        RTTI_ENUM_VALUE(nap::ERealSenseFrameTypes::COLOR, "Color"),
-        RTTI_ENUM_VALUE(nap::ERealSenseFrameTypes::DEPTH, "Depth")
-RTTI_END_ENUM
 
 RTTI_BEGIN_CLASS_NO_DEFAULT_CONSTRUCTOR(nap::RealSenseDevice)
     RTTI_CONSTRUCTOR(nap::RealSenseService&)
@@ -34,26 +19,6 @@ RTTI_END_CLASS
 
 namespace nap
 {
-
-    static std::unordered_map<ERealSenseFrameTypes, rs2_stream> stream_type_to_rs2stream =
-        {
-            { ERealSenseFrameTypes::COLOR, RS2_STREAM_COLOR },
-            { ERealSenseFrameTypes::DEPTH, RS2_STREAM_DEPTH }
-        };
-
-    static std::unordered_map<rs2_stream, ERealSenseFrameTypes> rs2stream_to_stream_type =
-        {
-            { RS2_STREAM_COLOR, ERealSenseFrameTypes::COLOR },
-            { RS2_STREAM_DEPTH, ERealSenseFrameTypes::DEPTH }
-        };
-
-
-    static std::unordered_map<ERealSenseStreamFormat, rs2_format> format_type_conversion_map =
-        {
-            { ERealSenseStreamFormat::RGBA8, RS2_FORMAT_RGBA8 },
-            { ERealSenseStreamFormat::Z16, RS2_FORMAT_Z16 }
-        };
-
     class RealSensePipeLine
     {
     public:
@@ -66,7 +31,6 @@ namespace nap
 
     RealSenseDevice::RealSenseDevice(RealSenseService &service) : mService(service)
     {
-        mService.registerDevice(this);
     }
 
 
@@ -77,19 +41,39 @@ namespace nap
             mPipeLine = std::make_unique<RealSensePipeLine>();
             mPipeLine->mFrameQueue = rs2::frame_queue(mMaxFrameSize);
 
+            if(!errorState.check(mService.hasSerialNumber(mSerial),
+                                 utility::stringFormat("Device with serial number %s is not connected", mSerial.c_str())))
+                return false;
+
+           if(!mService.registerDevice(this, errorState))
+               return false;
+
             rs2::config cfg;
-            for(const auto& stream_type : mStreams)
+            std::vector<ERealSenseStreamType> stream_types;
+            for(const auto& stream : mStreams)
             {
-                assert(stream_type_to_rs2stream.find(stream_type->getStreamType()) != stream_type_to_rs2stream.end());
-                assert(format_type_conversion_map.find(stream_type->mFormat)!=format_type_conversion_map.end());
-                cfg.enable_stream(stream_type_to_rs2stream[stream_type->getStreamType()], format_type_conversion_map[stream_type->mFormat]);
+                auto stream_type = stream->mStream;
+                if(std::find_if(stream_types.begin(),
+                                stream_types.end(),
+                                [stream_type](ERealSenseStreamType other)
+                                    { return stream_type == other; }) != stream_types.end())
+                {
+                    errorState.fail("Cannot open multiple streams of the same stream type!");
+                    return false;
+                }
+
+                stream_types.emplace_back(stream_type);
+
+                rs2_stream rs2_stream_type      = static_cast<rs2_stream>(stream->mStream);
+                rs2_format rs2_stream_format    = static_cast<rs2_format>(stream->mFormat);
+                cfg.enable_stream(rs2_stream_type, rs2_stream_format);
             }
             cfg.enable_device(mSerial);
 
             try
             {
                 mPipeLine->mPipe.start(cfg);
-            }catch (const rs2::error & e)
+            }catch(const rs2::error& e)
             {
                 errorState.fail(utility::stringFormat("RealSense error calling %s(%s)\n     %s,",
                                                       e.get_failed_function().c_str(),
@@ -97,7 +81,7 @@ namespace nap
                                                       e.what()));
                 return false;
             }
-            catch (const std::exception& e)
+            catch(const std::exception& e)
             {
                 errorState.fail(e.what());
                 return false;
@@ -124,13 +108,14 @@ namespace nap
                 mCaptureTask.wait();
 
             mPipeLine->mPipe.stop();
+
+            mService.removeDevice(this);
         }
     }
 
     void RealSenseDevice::onDestroy()
     {
         stop();
-        mService.removeDevice(this);
     }
 
 
@@ -139,42 +124,40 @@ namespace nap
         rs2::frameset data;
         if(mPipeLine->mFrameQueue.poll_for_frame(&data))
         {
-            if(data.size() > 0)
+            for(const auto& frame : data)
             {
-                for(const auto& frame : data)
+                auto stream_type = static_cast<ERealSenseStreamType>(frame.get_profile().stream_type());
+                if(mFrameListeners.find(stream_type)!=mFrameListeners.end())
                 {
-                    auto stream_type = rs2stream_to_stream_type[frame.get_profile().stream_type()];
-                    if(mFrameListeners.find(stream_type)!=mFrameListeners.end())
+                    auto &listeners = mFrameListeners[stream_type];
+                    for(auto *listener: listeners)
                     {
-                        auto &listeners = mFrameListeners[stream_type];
-                        for(auto *listener: listeners)
-                        {
-                            listener->trigger(frame);
-                        }
+                        listener->trigger(frame);
                     }
                 }
             }
         }
     }
 
+
     void RealSenseDevice::addFrameListener(RealSenseFrameListenerComponentInstance* frameListener)
     {
-        if(mFrameListeners.find(frameListener->getFrameType()) == mFrameListeners.end())
+        if(mFrameListeners.find(frameListener->getStreamType()) == mFrameListeners.end())
         {
-            mFrameListeners.emplace(frameListener->getFrameType(), std::vector<RealSenseFrameListenerComponentInstance*>());
+            mFrameListeners.emplace(frameListener->getStreamType(), std::vector<RealSenseFrameListenerComponentInstance*>());
         }
 
-        auto& listeners = mFrameListeners[frameListener->getFrameType()];
-        auto it_2 = std::find(listeners.begin(), listeners.end(), frameListener);
-        assert(it_2 == listeners.end()); // device already exists
+        auto& listeners = mFrameListeners[frameListener->getStreamType()];
+        auto it = std::find(listeners.begin(), listeners.end(), frameListener);
+        assert(it == listeners.end()); // device already exists
         listeners.emplace_back(frameListener);
     }
 
 
     void RealSenseDevice::removeFrameListener(RealSenseFrameListenerComponentInstance* frameListener)
     {
-        assert(mFrameListeners.find(frameListener->getFrameType()) != mFrameListeners.end());
-        auto& listeners = mFrameListeners[frameListener->getFrameType()];
+        assert(mFrameListeners.find(frameListener->getStreamType()) != mFrameListeners.end());
+        auto& listeners = mFrameListeners[frameListener->getStreamType()];
         auto it = std::find(listeners.begin(), listeners.end(), frameListener);
         assert(it != listeners.end()); // device does not exist
         listeners.erase(it);
@@ -191,17 +174,5 @@ namespace nap
                 mPipeLine->mFrameQueue.enqueue(data);
             }
         }
-    }
-
-
-    ERealSenseFrameTypes RealSenseColorStream::getStreamType() const
-    {
-        return ERealSenseFrameTypes::COLOR;
-    }
-
-
-    ERealSenseFrameTypes RealSenseDepthStream::getStreamType() const
-    {
-        return ERealSenseFrameTypes::DEPTH;
     }
 }
