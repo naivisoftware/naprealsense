@@ -41,9 +41,12 @@ namespace nap
             mImplementation = std::make_unique<Impl>();
             mImplementation->mFrameQueue = rs2::frame_queue(mMaxFrameSize);
 
-            if(!errorState.check(mService.hasSerialNumber(mSerial),
-                                 utility::stringFormat("Device with serial number %s is not connected", mSerial.c_str())))
-                return false;
+            if(!mSerial.empty())
+            {
+                if(!errorState.check(mService.hasSerialNumber(mSerial),
+                                     utility::stringFormat("Device with serial number %s is not connected", mSerial.c_str())))
+                    return false;
+            }
 
            if(!mService.registerDevice(this, errorState))
                return false;
@@ -68,7 +71,9 @@ namespace nap
                 rs2_format rs2_stream_format    = static_cast<rs2_format>(stream->mFormat);
                 cfg.enable_stream(rs2_stream_type, rs2_stream_format);
             }
-            cfg.enable_device(mSerial);
+
+            if(!mSerial.empty())
+                cfg.enable_device(mSerial);
 
             try
             {

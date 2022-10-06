@@ -26,6 +26,7 @@ namespace nap
 	RealSenseService::RealSenseService(ServiceConfiguration* configuration) :
 		Service(configuration)
 	{
+
 	}
 
 
