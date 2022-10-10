@@ -2,11 +2,14 @@
 
 #include <mesh.h>
 #include <rect.h>
+#include <renderablemeshcomponent.h>
 
 #include "realsenseframesetlistenercomponent.h"
+#include "planemesh.h"
 
 namespace nap
 {
+    class RealSenseDevice;
     class RealSenseRenderPointCloudComponentInstance;
     class RenderService;
 
@@ -70,7 +73,11 @@ namespace nap
     RTTI_ENABLE(RealSenseFrameSetListenerComponent)
     DECLARE_COMPONENT(RealSenseRenderPointCloudComponent, RealSenseRenderPointCloudComponentInstance)
     public:
-        ResourcePtr<PointCloudMesh> mMesh;
+        ResourcePtr<PlaneMesh> mMesh;
+        ResourcePtr<RealSenseDevice> mDevice;
+        ComponentPtr<RenderableMeshComponent> mRenderableMeshComponent;
+        ComponentPtr<TransformComponent> mCameraTransform;
+        float mPointSize = 1.0f;
     };
 
     class NAPAPI RealSenseRenderPointCloudComponentInstance : public RealSenseFrameSetListenerComponentInstance
@@ -90,7 +97,11 @@ namespace nap
         struct Impl;
         std::unique_ptr<Impl> mImplementation;
 
-        PointCloudMesh* mMesh;
+        ComponentInstancePtr<RenderableMeshComponent> mRenderableMesh = { this, &RealSenseRenderPointCloudComponent::mRenderableMeshComponent };
+        ComponentInstancePtr<TransformComponent> mCameraTransform = { this, &RealSenseRenderPointCloudComponent::mCameraTransform };
+        RealSenseDevice* mDevice;
+        PlaneMesh* mMesh;
         bool mDirty = false;
+        float mPointSize;
     };
 }

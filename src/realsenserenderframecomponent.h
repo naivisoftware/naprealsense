@@ -5,6 +5,7 @@
 namespace nap
 {
     class RealSenseRenderFrameComponentInstance;
+    class RealSenseFrameFilter;
 
     class NAPAPI RealSenseRenderFrameComponent : public RealSenseFrameSetListenerComponent
     {
@@ -13,6 +14,7 @@ namespace nap
     public:
         ERealSenseStreamType mStreamType = ERealSenseStreamType::REALSENSE_STREAMTYPE_COLOR;
         ResourcePtr<RenderTexture2D> mRenderTexture;
+        std::vector<ResourcePtr<RealSenseFrameFilter>> mFilters;
     };
 
     class NAPAPI RealSenseRenderFrameComponentInstance : public RealSenseFrameSetListenerComponentInstance
@@ -26,9 +28,16 @@ namespace nap
 
         void destroy() override;
 
+        void update(double deltaTime);
+
         void onTrigger(const rs2::frameset& frame);
     private:
         RenderTexture2D* mRenderTexture;
         ERealSenseStreamType mStreamType;
+
+        struct Impl;
+        std::unique_ptr<Impl> mImplementation;
+
+        std::vector<RealSenseFrameFilter*> mFilters;
     };
 }

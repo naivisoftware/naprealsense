@@ -17,6 +17,7 @@
 #include "realsensetypes.h"
 #include "realsenseframesetlistenercomponent.h"
 
+
 namespace nap
 {
     //////////////////////////////////////////////////////////////////////////
@@ -25,6 +26,7 @@ namespace nap
     class RealSenseService;
     class RealSensePipeLine;
     class RealSenseFrameSetListenerComponentInstance;
+    class RealSenseFrameSetAlignFilter;
 
     class NAPAPI RealSenseStreamDescription final : public Resource
     {
@@ -52,10 +54,16 @@ namespace nap
         std::string mSerial;
         int mMaxFrameSize = 5;
         std::vector<ResourcePtr<RealSenseStreamDescription>> mStreams;
+        std::vector<ResourcePtr<RealSenseFrameSetAlignFilter>> mFilters;
 
         void addFrameSetListener(RealSenseFrameSetListenerComponentInstance *frameSetListener);
 
         void removeFrameSetListener(RealSenseFrameSetListenerComponentInstance* frameSetListener);
+
+        const std::unordered_map<ERealSenseStreamType, RealSenseCameraIntrincics>& getIntrincicsMap() const
+        { return mCameraIntrinsics; }
+
+        float getDepthScale() const;
     private:
         void process();
 
@@ -67,7 +75,9 @@ namespace nap
         struct Impl;
         std::unique_ptr<Impl>   mImplementation;
 
+
         std::vector<RealSenseFrameSetListenerComponentInstance*> mFrameSetListeners;
+        std::unordered_map<ERealSenseStreamType, RealSenseCameraIntrincics> mCameraIntrinsics;
     };
 
     using RealSenseDeviceObjectCreator = rtti::ObjectCreator<RealSenseDevice, RealSenseService>;

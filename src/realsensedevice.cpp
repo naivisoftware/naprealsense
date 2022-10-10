@@ -1,6 +1,7 @@
 #include "realsensedevice.h"
 #include "realsenseservice.h"
 #include "realsenseframesetlistenercomponent.h"
+#include "realsenseframesetfilter.h"
 
 // RealSense includes
 #include <librealsense2/rs.hpp> // Include RealSense Cross Platform API
@@ -15,6 +16,7 @@ RTTI_BEGIN_CLASS_NO_DEFAULT_CONSTRUCTOR(nap::RealSenseDevice)
     RTTI_PROPERTY("Serial", &nap::RealSenseDevice::mSerial, nap::rtti::EPropertyMetaData::Default)
     RTTI_PROPERTY("MaxFrameSize", &nap::RealSenseDevice::mMaxFrameSize, nap::rtti::EPropertyMetaData::Default)
     RTTI_PROPERTY("Streams", &nap::RealSenseDevice::mStreams, nap::rtti::EPropertyMetaData::Embedded)
+    RTTI_PROPERTY("Filters", &nap::RealSenseDevice::mFilters, nap::rtti::EPropertyMetaData::Embedded)
 RTTI_END_CLASS
 
 namespace nap
@@ -27,6 +29,10 @@ namespace nap
 
         // Frame queue
         rs2::frame_queue mFrameQueue;
+
+        rs2::align mAlign = rs2::align(RS2_STREAM_DEPTH);
+        rs2::decimation_filter mDecFilter;
+        rs2::spatial_filter mSpatFilter;
     };
 
     RealSenseDevice::RealSenseDevice(RealSenseService &service) : mService(service)
@@ -72,12 +78,62 @@ namespace nap
                 cfg.enable_stream(rs2_stream_type, rs2_stream_format);
             }
 
+            //
+
             if(!mSerial.empty())
                 cfg.enable_device(mSerial);
 
             try
             {
                 mImplementation->mPipe.start(cfg);
+
+                for(auto& stream : mStreams)
+                {
+                    if(stream->mStream == ERealSenseStreamType::REALSENSE_STREAMTYPE_COLOR)
+                    {
+                        auto intrincics_rs2 = mImplementation->mPipe
+                                                    .get_active_profile()
+                                                    .get_stream(static_cast<rs2_stream>(stream->mStream))
+                                                    .as<rs2::video_stream_profile>()
+                                                    .get_intrinsics();
+
+                        RealSenseCameraIntrincics intrincics;
+                        intrincics.mHeight = intrincics_rs2.height;
+                        intrincics.mWidth = intrincics_rs2.width;
+                        for(int i = 0 ; i < 5; i++)
+                        {
+                            intrincics.mCoeffs[i] = intrincics_rs2.coeffs[i];
+                        }
+                        intrincics.mFX = intrincics_rs2.fx;
+                        intrincics.mFY = intrincics_rs2.fy;
+                        intrincics.mPPX = intrincics_rs2.ppx;
+                        intrincics.mPPY = intrincics_rs2.ppy;
+                        intrincics.mModel = static_cast<ERealSenseDistortionModels>(intrincics_rs2.model);
+                        mCameraIntrinsics.emplace(ERealSenseStreamType::REALSENSE_STREAMTYPE_COLOR, intrincics);
+                    }else if(stream->mStream == ERealSenseStreamType::REALSENSE_STREAMTYPE_DEPTH)
+                    {
+                        auto intrincics_rs2 = mImplementation->mPipe
+                            .get_active_profile()
+                            .get_stream(static_cast<rs2_stream>(stream->mStream))
+                            .as<rs2::video_stream_profile>()
+                            .get_intrinsics();
+
+                        RealSenseCameraIntrincics intrincics;
+                        intrincics.mHeight = intrincics_rs2.height;
+                        intrincics.mWidth = intrincics_rs2.width;
+                        for(int i = 0 ; i < 5; i++)
+                        {
+                            intrincics.mCoeffs[i] = intrincics_rs2.coeffs[i];
+                        }
+                        intrincics.mFX = intrincics_rs2.fx;
+                        intrincics.mFY = intrincics_rs2.fy;
+                        intrincics.mPPX = intrincics_rs2.ppx;
+                        intrincics.mPPY = intrincics_rs2.ppy;
+                        intrincics.mModel = static_cast<ERealSenseDistortionModels>(intrincics_rs2.model);
+                        mCameraIntrinsics.emplace(ERealSenseStreamType::REALSENSE_STREAMTYPE_DEPTH, intrincics);
+                    }
+                }
+
             }catch(const rs2::error& e)
             {
                 errorState.fail(utility::stringFormat("RealSense error calling %s(%s)\n     %s,",
@@ -104,6 +160,13 @@ namespace nap
     }
 
 
+    float RealSenseDevice::getDepthScale() const
+    {
+        auto dpth = mImplementation->mPipe.get_active_profile().get_device().first<rs2::depth_sensor>();
+        return dpth.get_depth_scale();
+    }
+
+
     void RealSenseDevice::stop()
     {
         if(mRun.load())
@@ -126,28 +189,6 @@ namespace nap
 
     void RealSenseDevice::update(double deltaTime)
     {
-        rs2::frameset data;
-        if(mImplementation->mFrameQueue.poll_for_frame(&data))
-        {
-            for(auto* frameset_listener : mFrameSetListeners)
-            {
-                frameset_listener->trigger(data);
-            }
-
-            /*
-            for(const auto& frame : data)
-            {
-                auto stream_type = static_cast<ERealSenseStreamType>(frame.get_profile().stream_type());
-                if(mFrameListeners.find(stream_type)!=mFrameListeners.end())
-                {
-                    auto &listeners = mFrameListeners[stream_type];
-                    for(auto *listener: listeners)
-                    {
-                        listener->trigger(frame);
-                    }
-                }
-            }*/
-        }
     }
 
 
@@ -169,12 +210,21 @@ namespace nap
 
     void RealSenseDevice::process()
     {
+        rs2::colorizer c;                     // Helper to colorize depth images
         while(mRun.load())
         {
             rs2::frameset data;
             if(mImplementation->mPipe.poll_for_frames(&data))
             {
-                mImplementation->mFrameQueue.enqueue(data);
+                for(auto& filter : mFilters)
+                {
+                    data = filter->process(data);
+                }
+
+                for(auto* frameset_listener : mFrameSetListeners)
+                {
+                    frameset_listener->trigger(data);
+                }
             }
         }
     }

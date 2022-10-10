@@ -53,4 +53,27 @@ namespace nap
         REALSENSE_FORMAT_Y411            = 30, /**< 12-bit per-pixel. */
         REALSENSE_FORMAT_COUNT           = 31  /**< Number of enumeration values. Not a valid input: intended to be used in for-loops. */
     };
+
+    enum NAPAPI ERealSenseDistortionModels : int
+    {
+        RS2_DISTORTION_NONE                  = 0, /**< Rectilinear images. No distortion compensation required. */
+        RS2_DISTORTION_MODIFIED_BROWN_CONRADY= 1, /**< Equivalent to Brown-Conrady distortion, except that tangential distortion is applied to radially distorted points */
+        RS2_DISTORTION_INVERSE_BROWN_CONRADY = 2, /**< Equivalent to Brown-Conrady distortion, except undistorts image instead of distorting it */
+        RS2_DISTORTION_FTHETA                = 3, /**< F-Theta fish-eye distortion model */
+        RS2_DISTORTION_BROWN_CONRADY         = 4, /**< Unmodified Brown-Conrady distortion model */
+        RS2_DISTORTION_KANNALA_BRANDT4       = 5, /**< Four parameter Kannala Brandt distortion model */
+        RS2_DISTORTION_COUNT                 = 6  /**< Number of enumeration values. Not a valid input: intended to be used in for-loops. */
+    } ;
+
+    struct NAPAPI RealSenseCameraIntrincics
+    {
+        int           mWidth;     /**< Width of the image in pixels */
+        int           mHeight;    /**< Height of the image in pixels */
+        float         mPPX;       /**< Horizontal coordinate of the principal point of the image, as a pixel offset from the left edge */
+        float         mPPY;       /**< Vertical coordinate of the principal point of the image, as a pixel offset from the top edge */
+        float         mFX;        /**< Focal length of the image plane, as a multiple of pixel width */
+        float         mFY;        /**< Focal length of the image plane, as a multiple of pixel height */
+        ERealSenseDistortionModels mModel;    /**< Distortion model of the image */
+        float         mCoeffs[5]; /**< Distortion coefficients. Order for Brown-Conrady: [k1, k2, p1, p2, k3]. Order for F-Theta Fish-eye: [k1, k2, k3, k4, 0]. Other models are subject to their own interpretations */
+    };
 }
