@@ -21,7 +21,7 @@ set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER Modules)
 set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "")
 
 # add include dirs
-target_include_directories(${PROJECT_NAME} PUBLIC src)
+target_include_directories(${PROJECT_NAME} PUBLIC ${INCLUDES})
 target_compile_definitions(${PROJECT_NAME} PRIVATE NAP_SHARED_LIBRARY)
 target_compile_definitions(${PROJECT_NAME} PRIVATE MODULE_NAME=${PROJECT_NAME})
 

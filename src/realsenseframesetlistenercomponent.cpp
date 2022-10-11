@@ -1,7 +1,7 @@
 #include "realsenseframesetlistenercomponent.h"
 #include "realsensedevice.h"
 
-#include <librealsense2/rs.hpp> // Include RealSense Cross Platform API
+#include <rs.hpp>
 
 RTTI_BEGIN_CLASS(nap::RealSenseFrameSetListenerComponent)
         RTTI_PROPERTY("RealSenseDevice", &nap::RealSenseFrameSetListenerComponent::mDevice, nap::rtti::EPropertyMetaData::Required)

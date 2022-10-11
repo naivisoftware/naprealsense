@@ -36,6 +36,8 @@ namespace nap
         rs2::frameset process(const rs2::frameset& frameset) override;
 
         bool init(utility::ErrorState& errorState) override;
+
+        ERealSenseStreamType mStreamType = ERealSenseStreamType::REALSENSE_STREAMTYPE_DEPTH;
     private:
         struct Impl;
         std::unique_ptr<Impl> mImpl;

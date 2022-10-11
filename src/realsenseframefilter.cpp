@@ -1,7 +1,7 @@
 
 #include "realsenseframefilter.h"
 
-#include <librealsense2/rs.hpp> // Include RealSense Cross Platform API
+#include <rs.hpp>
 
 RTTI_BEGIN_CLASS_NO_DEFAULT_CONSTRUCTOR(nap::RealSenseFrameFilter)
 

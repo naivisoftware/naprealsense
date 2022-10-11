@@ -4,8 +4,9 @@
 #include <rect.h>
 #include <renderablemeshcomponent.h>
 
+#include "realsenserenderframecomponent.h"
 #include "realsenseframesetlistenercomponent.h"
-#include "planemesh.h"
+#include "pointcloudmesh.h"
 
 namespace nap
 {
@@ -13,95 +14,44 @@ namespace nap
     class RealSenseRenderPointCloudComponentInstance;
     class RenderService;
 
-    /**
-	 */
-    class NAPAPI PointCloudMesh : public IMesh
+    class NAPAPI RealSenseRenderPointCloudComponent : public RenderableMeshComponent
     {
-    RTTI_ENABLE(IMesh)
-    public:
-        PointCloudMesh(Core& core);
-
-        /**
-         * Sets up, initializes and uploads the plane to the GPU based on the provided parameters.
-         * @param errorState contains the error message if the mesh could not be created.
-         * @return if the mesh was successfully created and initialized.
-         */
-        virtual bool init(utility::ErrorState& errorState) override;
-
-        /**
-        * Creates and prepares the mesh instance but doesn't initialize it.
-        * Call this when you want to prepare a grid without creating the GPU representation.
-        * You have to manually call init() on the mesh instance afterwards.
-        * @param error contains the error code if setup fails
-        * @return if setup succeeded
-        */
-        bool setup(utility::ErrorState& error);
-
-        /**
-         *	@return the mesh used for rendering
-         */
-        virtual MeshInstance& getMeshInstance() override					{ return *mMeshInstance; }
-
-        /**
-         *	@return the mesh used for rendering
-         */
-        virtual const MeshInstance& getMeshInstance() const override		{ return *mMeshInstance; }
-
-        /**
-         *	@return the plane as a rectangle
-         */
-        const math::Rect& getRect()											{ return mRect; }
-
-        // property: the size of the plane
-        glm::vec2		mSize			= { 1.0, 1.0 };						///< Property: 'Size' the size of the plane in units
-        glm::vec2		mPosition		= { 0.0,0.0 };						///< Property: 'Position' where the plane is positioned in object space
-        RGBAColorFloat	mColor			= { 1.0f, 1.0f, 1.0f, 1.0f };		///< Property: 'Color' color of the plane
-        EMemoryUsage	mUsage			= EMemoryUsage::DynamicWrite;		///< Property: 'Usage' If the plane is uploaded once or frequently updated.
-        ECullMode		mCullMode		= ECullMode::None;					///< Property: 'CullMode' Plane cull mode, defaults to no culling
-        EPolygonMode	mPolygonMode	= EPolygonMode::Point;				///< Property: 'PolygonMode' Polygon rasterization mode (fill, line, points)
-
-        void constructPointCloud(nap::MeshInstance& mesh, size_t vertCount);
-
-    private:
-        RenderService* mRenderService;
-        std::unique_ptr<MeshInstance> mMeshInstance;
-        math::Rect mRect;
-    };
-
-    class NAPAPI RealSenseRenderPointCloudComponent : public RealSenseFrameSetListenerComponent
-    {
-    RTTI_ENABLE(RealSenseFrameSetListenerComponent)
+    RTTI_ENABLE(RenderableMeshComponent)
     DECLARE_COMPONENT(RealSenseRenderPointCloudComponent, RealSenseRenderPointCloudComponentInstance)
     public:
-        ResourcePtr<PlaneMesh> mMesh;
         ResourcePtr<RealSenseDevice> mDevice;
-        ComponentPtr<RenderableMeshComponent> mRenderableMeshComponent;
         ComponentPtr<TransformComponent> mCameraTransform;
+        ComponentPtr<RealSenseRenderFrameComponent> mDepthRenderer;
+        ComponentPtr<RealSenseRenderFrameComponent> mColorRenderer;
         float mPointSize = 1.0f;
+        float mMaxDistance = 5.0f;
     };
 
-    class NAPAPI RealSenseRenderPointCloudComponentInstance : public RealSenseFrameSetListenerComponentInstance
+    class NAPAPI RealSenseRenderPointCloudComponentInstance : public RenderableMeshComponentInstance
     {
-    RTTI_ENABLE(RealSenseFrameSetListenerComponentInstance)
+    RTTI_ENABLE(RenderableMeshComponentInstance)
     public:
         RealSenseRenderPointCloudComponentInstance(EntityInstance& entity, Component& resource);
 
         virtual ~RealSenseRenderPointCloudComponentInstance();
+
+        bool init(utility::ErrorState& errorState);
+
+        /**
+         * Update this component
+         * @param deltaTime the time in between cooks in seconds
+         */
+        virtual void update(double deltaTime);
+
+        void onDraw(nap::IRenderTarget &renderTarget, VkCommandBuffer commandBuffer, const glm::mat4 &viewMatrix, const glm::mat4 &projectionMatrix) override;
     protected:
-        bool onInit(utility::ErrorState& errorState) override;
-
-        void onTrigger(const rs2::frameset& frameset);
-
-        void update(double deltaTime) override;
     private:
-        struct Impl;
-        std::unique_ptr<Impl> mImplementation;
-
-        ComponentInstancePtr<RenderableMeshComponent> mRenderableMesh = { this, &RealSenseRenderPointCloudComponent::mRenderableMeshComponent };
         ComponentInstancePtr<TransformComponent> mCameraTransform = { this, &RealSenseRenderPointCloudComponent::mCameraTransform };
+        ComponentInstancePtr<RealSenseRenderFrameComponent> mDepthRenderer = { this, &RealSenseRenderPointCloudComponent::mDepthRenderer };
+        ComponentInstancePtr<RealSenseRenderFrameComponent> mColorRenderer = { this, &RealSenseRenderPointCloudComponent::mColorRenderer };
         RealSenseDevice* mDevice;
-        PlaneMesh* mMesh;
-        bool mDirty = false;
         float mPointSize;
+        float mMaxDistance;
+        bool mReady = false;
     };
 }

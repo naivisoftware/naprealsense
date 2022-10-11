@@ -4,7 +4,7 @@
 #include "realsenseframesetfilter.h"
 
 // RealSense includes
-#include <librealsense2/rs.hpp> // Include RealSense Cross Platform API
+#include <rs.hpp>
 
 RTTI_BEGIN_CLASS(nap::RealSenseStreamDescription)
     RTTI_PROPERTY("Format", &nap::RealSenseStreamDescription::mFormat, nap::rtti::EPropertyMetaData::Default)
@@ -29,10 +29,6 @@ namespace nap
 
         // Frame queue
         rs2::frame_queue mFrameQueue;
-
-        rs2::align mAlign = rs2::align(RS2_STREAM_DEPTH);
-        rs2::decimation_filter mDecFilter;
-        rs2::spatial_filter mSpatFilter;
     };
 
     RealSenseDevice::RealSenseDevice(RealSenseService &service) : mService(service)
@@ -210,7 +206,6 @@ namespace nap
 
     void RealSenseDevice::process()
     {
-        rs2::colorizer c;                     // Helper to colorize depth images
         while(mRun.load())
         {
             rs2::frameset data;

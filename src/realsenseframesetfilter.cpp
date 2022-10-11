@@ -1,12 +1,13 @@
 
 #include "realsenseframesetfilter.h"
 
-#include <librealsense2/rs.hpp> // Include RealSense Cross Platform API
+#include <rs.hpp>
 
 RTTI_BEGIN_CLASS_NO_DEFAULT_CONSTRUCTOR(nap::RealSenseFrameSetFilter)
 RTTI_END_CLASS
 
 RTTI_BEGIN_CLASS(nap::RealSenseFrameSetAlignFilter)
+    RTTI_PROPERTY("Align To", &nap::RealSenseFrameSetAlignFilter::mStreamType, nap::rtti::EPropertyMetaData::Default)
 RTTI_END_CLASS
 
 namespace nap
@@ -14,12 +15,15 @@ namespace nap
     struct RealSenseFrameSetAlignFilter::Impl
     {
     public:
-        rs2::align mAlign = rs2::align(RS2_STREAM_DEPTH);
+        Impl(rs2_stream streamType) :
+            mAlign(streamType){}
+
+        rs2::align mAlign;
     };
 
     bool RealSenseFrameSetAlignFilter::init(utility::ErrorState &errorState)
     {
-        mImpl = std::make_unique<Impl>();
+        mImpl = std::make_unique<Impl>(static_cast<rs2_stream>(mStreamType));
 
         return true;
     }
