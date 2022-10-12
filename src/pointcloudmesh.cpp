@@ -7,6 +7,7 @@ RTTI_BEGIN_CLASS_NO_DEFAULT_CONSTRUCTOR(nap::PointCloudMesh)
     RTTI_CONSTRUCTOR(nap::Core&)
     RTTI_PROPERTY("Rows", &nap::PointCloudMesh::mRows, nap::rtti::EPropertyMetaData::Default)
     RTTI_PROPERTY("Colums", &nap::PointCloudMesh::mColums, nap::rtti::EPropertyMetaData::Default)
+    RTTI_PROPERTY("Size", &nap::PointCloudMesh::mColums, nap::rtti::EPropertyMetaData::Default)
 RTTI_END_CLASS
 
 namespace nap
@@ -56,14 +57,32 @@ namespace nap
         mesh.setPolygonMode(mPolygonMode);
 
         // Push vertex data
-        std::vector<uint32> indices(vert_count, 0);
-        for (size_t i = 0; i < vert_count; i++) {
-            float x = static_cast<float>(i % mRows) / static_cast<float>(mColums);
-            float y = static_cast<float>(i / mColums) / static_cast<float>(mRows);
+        size_t width = mColums;
+        size_t height = mRows;
+        for(size_t y = 0; y < height; y++)
+        {
+            for(size_t x = 0; x < width; x++)
+            {
+                size_t idx = y * width + x;
+                float x_part = static_cast<float>(x) / static_cast<float>(width);
+                float y_part = static_cast<float>(y) / static_cast<float>(height);
+                uvs[idx] = { x_part, y_part, 0.0f };
 
-            uvs[i] = {x, y, 0};
-            indices[i] = i;
+                float r = 0.0f;
+                if(width >= height)
+                {
+                    r = (static_cast<float>(height) / static_cast<float>(width)) * mSize;
+                }else
+                {
+                    r = (static_cast<float>(width) / static_cast<float>(height)) * mSize;
+                }
+                vertices[idx] = { x_part * r, y_part * mSize, 0.0f };
+            }
         }
+
+        std::vector<uint32> indices(vert_count, 0);
+        for (size_t i = 0; i < vert_count; i++)
+            indices[i] = i;
 
         position_attribute.setData(vertices.data(), vert_count);
         normal_attribute.setData(normals.data(), vert_count);

@@ -26,6 +26,7 @@ namespace nap
         ECullMode		mCullMode		= ECullMode::None;					///< Property: 'CullMode' Plane cull mode, defaults to no culling
         int             mRows           = 100;
         int             mColums         = 100;
+        float           mSize           = 1.0f;
 
         void constructPointCloud(nap::MeshInstance& mesh);
     private:
