@@ -19,6 +19,10 @@ namespace nap
     RTTI_ENABLE(RenderableMeshComponent)
     DECLARE_COMPONENT(RealSenseRenderPointCloudComponent, RealSenseRenderPointCloudComponentInstance)
     public:
+        RealSenseRenderPointCloudComponent();
+
+        virtual ~RealSenseRenderPointCloudComponent();
+
         ResourcePtr<RealSenseDevice> mDevice;
         ComponentPtr<TransformComponent> mCameraTransform;
         ComponentPtr<RealSenseRenderFrameComponent> mDepthRenderer;

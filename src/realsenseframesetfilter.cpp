@@ -1,5 +1,5 @@
-
 #include "realsenseframesetfilter.h"
+#include "realsensedevice.h"
 
 #include <rs.hpp>
 
@@ -12,6 +12,10 @@ RTTI_END_CLASS
 
 namespace nap
 {
+    RealSenseFrameSetFilter::RealSenseFrameSetFilter(){}
+
+    RealSenseFrameSetFilter::~RealSenseFrameSetFilter(){}
+
     struct RealSenseFrameSetAlignFilter::Impl
     {
     public:
@@ -20,6 +24,10 @@ namespace nap
 
         rs2::align mAlign;
     };
+
+    RealSenseFrameSetAlignFilter::RealSenseFrameSetAlignFilter(){}
+
+    RealSenseFrameSetAlignFilter::~RealSenseFrameSetAlignFilter(){}
 
     bool RealSenseFrameSetAlignFilter::init(utility::ErrorState &errorState)
     {

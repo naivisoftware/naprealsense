@@ -29,11 +29,15 @@ namespace nap
 
         // Frame queue
         rs2::frame_queue mFrameQueue;
+
+        rs2::config mConfig;
     };
 
     RealSenseDevice::RealSenseDevice(RealSenseService &service) : mService(service)
     {
     }
+
+    RealSenseDevice::~RealSenseDevice(){}
 
 
     bool RealSenseDevice::start(utility::ErrorState &errorState)
@@ -53,7 +57,6 @@ namespace nap
            if(!mService.registerDevice(this, errorState))
                return false;
 
-            rs2::config cfg;
             std::vector<ERealSenseStreamType> stream_types;
             for(const auto& stream : mStreams)
             {
@@ -71,17 +74,17 @@ namespace nap
 
                 rs2_stream rs2_stream_type      = static_cast<rs2_stream>(stream->mStream);
                 rs2_format rs2_stream_format    = static_cast<rs2_format>(stream->mFormat);
-                cfg.enable_stream(rs2_stream_type, rs2_stream_format);
+                mImplementation->mConfig.enable_stream(rs2_stream_type, rs2_stream_format);
             }
 
             //
 
             if(!mSerial.empty())
-                cfg.enable_device(mSerial);
+                mImplementation->mConfig.enable_device(mSerial);
 
             try
             {
-                mImplementation->mPipe.start(cfg);
+                mImplementation->mPipe.start(mImplementation->mConfig);
 
                 for(auto& stream : mStreams)
                 {

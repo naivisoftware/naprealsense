@@ -12,6 +12,10 @@ namespace nap
     RTTI_ENABLE(RealSenseFrameSetListenerComponent)
     DECLARE_COMPONENT(RealSenseRenderFrameComponent, RealSenseRenderFrameComponentInstance)
     public:
+        RealSenseRenderFrameComponent();
+
+        virtual ~RealSenseRenderFrameComponent();
+
         ERealSenseStreamType mStreamType = ERealSenseStreamType::REALSENSE_STREAMTYPE_COLOR;
 
         RenderTexture2D::EFormat mFormat = RenderTexture2D::EFormat::RGBA8;
@@ -24,6 +28,8 @@ namespace nap
     RTTI_ENABLE(RealSenseFrameSetListenerComponentInstance)
     public:
         RealSenseRenderFrameComponentInstance(EntityInstance& entity, Component& resource);
+
+        virtual ~RealSenseRenderFrameComponentInstance();
 
         RenderTexture2D& getRenderTexture() const{ return *mRenderTexture; }
 

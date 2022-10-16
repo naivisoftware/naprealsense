@@ -25,6 +25,10 @@ namespace nap
     {
         RTTI_ENABLE(Resource)
     public:
+        RealSenseFrameFilter();
+
+        virtual ~RealSenseFrameFilter();
+
         virtual rs2::frame process(const rs2::frame& frame) = 0;
     private:
     };
@@ -33,6 +37,10 @@ namespace nap
     {
     RTTI_ENABLE(RealSenseFrameFilter)
     public:
+        RealSenseSpatialFilter();
+
+        virtual ~RealSenseSpatialFilter();
+
         bool init(utility::ErrorState& errorState) override;
 
         rs2::frame process(const rs2::frame& frame) override;
@@ -47,6 +55,10 @@ namespace nap
     {
     RTTI_ENABLE(RealSenseFrameFilter)
     public:
+        RealSenseDecFilter();
+
+        virtual ~RealSenseDecFilter();
+
         bool init(utility::ErrorState& errorState) override;
 
         rs2::frame process(const rs2::frame& frame) override;
@@ -61,6 +73,10 @@ namespace nap
     {
     RTTI_ENABLE(RealSenseFrameFilter)
     public:
+        RealSenseDisparityFilter();
+
+        virtual ~RealSenseDisparityFilter();
+
         bool init(utility::ErrorState& errorState) override;
 
         rs2::frame process(const rs2::frame& frame) override;
@@ -75,6 +91,10 @@ namespace nap
     {
     RTTI_ENABLE(RealSenseFrameFilter)
     public:
+        RealSenseColorizeFilter();
+
+        virtual ~RealSenseColorizeFilter();
+
         bool init(utility::ErrorState& errorState) override;
 
         rs2::frame process(const rs2::frame& frame) override;

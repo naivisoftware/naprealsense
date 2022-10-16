@@ -25,6 +25,10 @@ namespace nap
     {
     RTTI_ENABLE(Resource)
     public:
+        RealSenseFrameSetFilter();
+
+        virtual ~RealSenseFrameSetFilter();
+
         virtual rs2::frameset process(const rs2::frameset& frame) = 0;
     private:
     };
@@ -33,6 +37,10 @@ namespace nap
     {
     RTTI_ENABLE(RealSenseFrameSetFilter)
     public:
+        RealSenseFrameSetAlignFilter();
+
+        virtual ~RealSenseFrameSetAlignFilter();
+
         rs2::frameset process(const rs2::frameset& frameset) override;
 
         bool init(utility::ErrorState& errorState) override;

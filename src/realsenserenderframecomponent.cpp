@@ -16,6 +16,10 @@ RTTI_END_CLASS
 
 namespace nap
 {
+    RealSenseRenderFrameComponent::RealSenseRenderFrameComponent(){}
+
+    RealSenseRenderFrameComponent::~RealSenseRenderFrameComponent(){}
+
     struct RealSenseRenderFrameComponentInstance::Impl
     {
     public:
@@ -28,6 +32,8 @@ namespace nap
     {
 
     }
+
+    RealSenseRenderFrameComponentInstance::~RealSenseRenderFrameComponentInstance(){}
 
     bool RealSenseRenderFrameComponentInstance::onInit(utility::ErrorState &errorState)
     {

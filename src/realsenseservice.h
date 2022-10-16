@@ -30,6 +30,7 @@ namespace nap
 		 * Deconstructor
 		 */
 		virtual ~RealSenseService();
+
 		/**
 		 * registers all objects that need a specific way of construction
 		 * @param factory the factory to register the object creators with

@@ -14,6 +14,8 @@ namespace nap
     public:
         PointCloudMesh(Core& core);
 
+        virtual ~PointCloudMesh();
+
         virtual bool init(utility::ErrorState& errorState) override;
 
         bool setup(utility::ErrorState& error);

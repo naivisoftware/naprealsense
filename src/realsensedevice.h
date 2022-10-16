@@ -42,6 +42,8 @@ namespace nap
     public:
         RealSenseDevice(RealSenseService& service);
 
+        virtual ~RealSenseDevice();
+
         virtual bool start(utility::ErrorState& errorState) override final;
 
         virtual void stop() override final;

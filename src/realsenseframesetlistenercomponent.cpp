@@ -13,6 +13,10 @@ RTTI_END_CLASS
 
 namespace nap
 {
+    RealSenseFrameSetListenerComponent::RealSenseFrameSetListenerComponent(){}
+
+    RealSenseFrameSetListenerComponent::~RealSenseFrameSetListenerComponent(){}
+
     RealSenseFrameSetListenerComponentInstance::~RealSenseFrameSetListenerComponentInstance()
     {}
 

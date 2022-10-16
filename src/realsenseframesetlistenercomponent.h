@@ -31,6 +31,10 @@ namespace nap
     RTTI_ENABLE(Component)
     DECLARE_COMPONENT(RealSenseFrameSetListenerComponent, RealSenseFrameSetListenerComponentInstance)
     public:
+        RealSenseFrameSetListenerComponent();
+
+        virtual ~RealSenseFrameSetListenerComponent();
+
         ResourcePtr<RealSenseDevice> mDevice; ///< Property: 'Device' the device this component receives frames from
     };
 

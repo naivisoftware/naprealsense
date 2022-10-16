@@ -31,6 +31,10 @@ target_link_libraries(${PROJECT_NAME} napcore ${DEPENDENT_NAP_MODULES} debug ${R
 # Deploy module.json as MODULENAME.json alongside module post-build
 copy_module_json_to_bin()
 
+if(WIN32)
+    copy_realsense_dll()
+endif()
+
 # Package into platform release
 if(UNIX)
     set(LINUX_EXTRA_RPATH ../../../../thirdparty/realsense/lib)

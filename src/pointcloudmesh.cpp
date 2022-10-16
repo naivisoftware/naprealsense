@@ -14,6 +14,8 @@ namespace nap
 {
     PointCloudMesh::PointCloudMesh(Core& core) : mRenderService(core.getService<RenderService>()) {}
 
+    PointCloudMesh::~PointCloudMesh(){}
+
     bool PointCloudMesh::init(utility::ErrorState& errorState)
     {
         // Setup plane

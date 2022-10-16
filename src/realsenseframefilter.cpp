@@ -1,5 +1,6 @@
 
 #include "realsenseframefilter.h"
+#include "realsensedevice.h"
 
 #include <rs.hpp>
 
@@ -24,6 +25,14 @@ RTTI_END_CLASS
 
 namespace nap
 {
+    RealSenseFrameFilter::RealSenseFrameFilter(){}
+
+    RealSenseFrameFilter::~RealSenseFrameFilter(){}
+
+    RealSenseSpatialFilter::RealSenseSpatialFilter(){}
+
+    RealSenseSpatialFilter::~RealSenseSpatialFilter(){}
+
     struct RealSenseSpatialFilter::Impl
     {
     public:
@@ -45,6 +54,10 @@ namespace nap
         return mImpl->mSpatFilter.filter::process(frame);
     }
 
+    RealSenseDecFilter::RealSenseDecFilter(){}
+
+    RealSenseDecFilter::~RealSenseDecFilter(){}
+
     struct RealSenseDecFilter::Impl
     {
     public:
@@ -63,16 +76,24 @@ namespace nap
         return mImpl->mDecFilter.filter::process(frame);
     }
 
-    struct RealSenseDisparityFilter::Impl
-    {
-    public:
-        rs2::disparity_transform mDisparityTransform;
-    };
+    RealSenseColorizeFilter::RealSenseColorizeFilter(){}
+
+    RealSenseColorizeFilter::~RealSenseColorizeFilter(){}
 
     struct RealSenseColorizeFilter::Impl
     {
     public:
         rs2::colorizer mColorizer;
+    };
+
+    RealSenseDisparityFilter::RealSenseDisparityFilter(){}
+
+    RealSenseDisparityFilter::~RealSenseDisparityFilter(){}
+
+    struct RealSenseDisparityFilter::Impl
+    {
+    public:
+        rs2::disparity_transform mDisparityTransform;
     };
 
     bool RealSenseDisparityFilter::init(utility::ErrorState &errorState)

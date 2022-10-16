@@ -23,6 +23,9 @@ RTTI_END_CLASS
 
 namespace nap
 {
+    RealSenseRenderPointCloudComponent::RealSenseRenderPointCloudComponent(){}
+
+    RealSenseRenderPointCloudComponent::~RealSenseRenderPointCloudComponent(){}
 
     RealSenseRenderPointCloudComponentInstance::RealSenseRenderPointCloudComponentInstance(EntityInstance& entity, Component& resource)
         : RenderableMeshComponentInstance(entity, resource)
