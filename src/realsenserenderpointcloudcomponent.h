@@ -34,6 +34,7 @@ namespace nap
          */
         virtual ~RealSenseRenderPointCloudComponent();
 
+        ERealSenseStreamType mCameraIntrinsicsStreamType = ERealSenseStreamType::REALSENSE_STREAMTYPE_DEPTH;
         ResourcePtr<RealSenseDevice> mDevice; ///< Property: 'Device' the device this component renders the point cloud from
         ComponentPtr<TransformComponent> mCameraTransform; ///< Property: 'CameraTransform' the camera transform
         ComponentPtr<RealSenseRenderFrameComponent> mDepthRenderer; ///< Property: 'DepthRenderer'
@@ -88,5 +89,6 @@ namespace nap
         float mPointSize;
         float mMaxDistance;
         bool mReady = false;
+        ERealSenseStreamType mCameraIntrinsicsStreamType;
     };
 }

@@ -19,10 +19,19 @@ namespace nap
     //////////////////////////////////////////////////////////////////////////
 
 
-    RealSenseRenderFrameComponent::RealSenseRenderFrameComponent(){}
+    RealSenseRenderFrameComponent::RealSenseRenderFrameComponent()
+    {
+        mInstance = nullptr;
+    }
 
 
     RealSenseRenderFrameComponent::~RealSenseRenderFrameComponent(){}
+
+
+    RealSenseRenderFrameComponentInstance* RealSenseRenderFrameComponent::getInstance()
+    {
+        return mInstance;
+    }
 
 
     //////////////////////////////////////////////////////////////////////////
@@ -58,6 +67,8 @@ namespace nap
         mImplementation = std::make_unique<Impl>();
 
         mResource = getComponent<RealSenseRenderFrameComponent>();
+        mResource->mInstance = this;
+
         mFormat = mResource->mFormat;
         mStreamType = mResource->mStreamType;
 

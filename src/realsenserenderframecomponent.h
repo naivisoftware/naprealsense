@@ -13,6 +13,8 @@ namespace nap
      */
     class NAPAPI RealSenseRenderFrameComponent : public RealSenseFrameSetListenerComponent
     {
+        friend class RealSenseRenderFrameComponentInstance;
+
     RTTI_ENABLE(RealSenseFrameSetListenerComponent)
     DECLARE_COMPONENT(RealSenseRenderFrameComponent, RealSenseRenderFrameComponentInstance)
     public:
@@ -26,7 +28,15 @@ namespace nap
          */
         virtual ~RealSenseRenderFrameComponent();
 
+        /**
+         * Returns component instance, nullptr if not inited
+         * @return component instance, nullptr if not inited
+         */
+        RealSenseRenderFrameComponentInstance* getInstance();
+
         RenderTexture2D::EFormat mFormat = RenderTexture2D::EFormat::RGBA8; ///< Property: 'Format' render texture format
+    private:
+        RealSenseRenderFrameComponentInstance* mInstance;
     };
 
     /**
