@@ -8,32 +8,63 @@
 
 namespace nap
 {
+    //////////////////////////////////////////////////////////////////////////
+
+    /**
+     * PointCloudMesh
+     */
     class NAPAPI PointCloudMesh : public IMesh
     {
     RTTI_ENABLE(IMesh)
     public:
+        /**
+         * Constructor
+         * @param core
+         */
         PointCloudMesh(Core& core);
 
+        /**
+         * Destructor
+         */
         virtual ~PointCloudMesh();
 
+        /**
+         * Initializes and uploads the mesh
+         * @param errorState contains any error
+         * @return true on success
+         */
         virtual bool init(utility::ErrorState& errorState) override;
 
+        /**
+         * Creates the mesh
+         * @param errorState contains any error
+         * @return true on success
+         */
         bool setup(utility::ErrorState& error);
 
+        /**
+         * Returns mesh instance
+         * @return mesh instance
+         */
         virtual MeshInstance& getMeshInstance() override					{ return *mMeshInstance; }
 
+        /**
+         * Returns const mesh instance
+         * @return const mesh instance
+         */
         virtual const MeshInstance& getMeshInstance() const override		{ return *mMeshInstance; }
 
         // property: the size of the plane
-        ECullMode		mCullMode		= ECullMode::None;					///< Property: 'CullMode' Plane cull mode, defaults to no culling
-        int             mRows           = 100;
-        int             mColums         = 100;
-        float           mSize           = 1.0f;
+        int             mRows           = 100; ///< Property: 'Rows' amount of rows
+        int             mColums         = 100; ///< Property: 'Columns' amount of columns
+        float           mSize           = 1.0f; ///< Property: 'Size' size in units
+        EMemoryUsage	mUsage			= EMemoryUsage::Static; ///< Property: 'Usage' memory usage
+        ECullMode		mCullMode		= ECullMode::None; ///< Property: 'CullMode' cull mode
+
 
         void constructPointCloud(nap::MeshInstance& mesh);
     private:
-        EPolygonMode	mPolygonMode	= EPolygonMode::Point;		///< Property: 'PolygonMode' Polygon rasterization mode (fill, line, points)
-        EMemoryUsage	mUsage			= EMemoryUsage::Static;		///< Property: 'Usage' If the plane is uploaded once or frequently updated.
+        EPolygonMode	mPolygonMode	= EPolygonMode::Point;
 
         RenderService* mRenderService;
         std::unique_ptr<MeshInstance> mMeshInstance;

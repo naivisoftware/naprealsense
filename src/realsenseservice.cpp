@@ -23,6 +23,11 @@ RTTI_END_CLASS
 
 namespace nap
 {
+    //////////////////////////////////////////////////////////////////////////
+    // RealSenseService
+    //////////////////////////////////////////////////////////////////////////
+
+
 	RealSenseService::RealSenseService(ServiceConfiguration* configuration) :
 		Service(configuration)
 	{
@@ -63,10 +68,6 @@ namespace nap
 
 	void RealSenseService::update(double deltaTime)
 	{
-        for(auto* device : mDevices)
-        {
-            device->update(deltaTime);
-        }
 	}
 
 

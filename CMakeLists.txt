@@ -62,3 +62,4 @@ if(WIN32)
     install(FILES $<TARGET_FILE_DIR:realsense>/realsense2.lib DESTINATION thirdparty/librealsense/bin)
 endif()
 
+

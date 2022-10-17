@@ -1,13 +1,11 @@
 #include "realsenserenderframecomponent.h"
 #include "realsensedevice.h"
-#include "realsenseframefilter.h"
 
 #include <rs.hpp>
 
 RTTI_BEGIN_CLASS(nap::RealSenseRenderFrameComponent)
     RTTI_PROPERTY("Format", &nap::RealSenseRenderFrameComponent::mFormat, nap::rtti::EPropertyMetaData::Default)
     RTTI_PROPERTY("StreamType", &nap::RealSenseRenderFrameComponent::mStreamType, nap::rtti::EPropertyMetaData::Default)
-    RTTI_PROPERTY("Filters", &nap::RealSenseRenderFrameComponent::mFilters, nap::rtti::EPropertyMetaData::Embedded)
 RTTI_END_CLASS
 
 RTTI_BEGIN_CLASS_NO_DEFAULT_CONSTRUCTOR(nap::RealSenseRenderFrameComponentInstance)
@@ -16,9 +14,21 @@ RTTI_END_CLASS
 
 namespace nap
 {
+    //////////////////////////////////////////////////////////////////////////
+    // RealSenseRenderFrameComponent
+    //////////////////////////////////////////////////////////////////////////
+
+
     RealSenseRenderFrameComponent::RealSenseRenderFrameComponent(){}
 
+
     RealSenseRenderFrameComponent::~RealSenseRenderFrameComponent(){}
+
+
+    //////////////////////////////////////////////////////////////////////////
+    // RealSenseRenderFrameComponentInstance::Impl
+    //////////////////////////////////////////////////////////////////////////
+
 
     struct RealSenseRenderFrameComponentInstance::Impl
     {
@@ -27,13 +37,21 @@ namespace nap
         rs2::frame_queue mFrameQueue;
     };
 
+
+    //////////////////////////////////////////////////////////////////////////
+    // RealSenseRenderFrameComponentInstance
+    //////////////////////////////////////////////////////////////////////////
+
+
     RealSenseRenderFrameComponentInstance::RealSenseRenderFrameComponentInstance(EntityInstance& entity, Component& resource) :
         RealSenseFrameSetListenerComponentInstance(entity, resource)
     {
 
     }
 
+
     RealSenseRenderFrameComponentInstance::~RealSenseRenderFrameComponentInstance(){}
+
 
     bool RealSenseRenderFrameComponentInstance::onInit(utility::ErrorState &errorState)
     {
@@ -50,12 +68,7 @@ namespace nap
         mRenderTexture->mColorSpace = EColorSpace::Linear;
         mRenderTexture->mFormat = mFormat;
 
-        for(auto& filter : mResource->mFilters)
-        {
-            mFilters.emplace_back(filter.get());
-        }
-
-        frameSetReceived.connect([this](const rs2::frameset& frameset){ onTrigger(frameset); });
+        frameReceived.connect([this](const rs2::frame& frame){ onTrigger(frame); });
 
         return true;
     }
@@ -97,24 +110,12 @@ namespace nap
                 // Update texture on GPU
                 mRenderTexture->update(video_frame.get_data(), mRenderTexture->getDescriptor());
             }
-
         }
     }
 
 
-    void RealSenseRenderFrameComponentInstance::onTrigger(const rs2::frameset &frameset)
+    void RealSenseRenderFrameComponentInstance::onTrigger(const rs2::frame &frame)
     {
-        for(const auto& frame : frameset)
-        {
-            if(frame.get_profile().stream_type()==static_cast<rs2_stream>(mStreamType))
-            {
-                rs2::frame process_frame = frame;
-                for(auto* filter : mFilters)
-                {
-                    process_frame = filter->process(process_frame);
-                }
-                mImplementation->mFrameQueue.enqueue(process_frame);
-            }
-        }
+        mImplementation->mFrameQueue.enqueue(frame);
     }
 }

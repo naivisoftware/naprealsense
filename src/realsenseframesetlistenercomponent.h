@@ -18,49 +18,96 @@
 namespace rs2
 {
     class frameset;
+    class frame;
 }
 
 namespace nap
 {
+    //////////////////////////////////////////////////////////////////////////
+
     class RealSenseDevice;
     class RealSenseStreamDescription;
     class RealSenseFrameSetListenerComponentInstance;
+    class RealSenseFrameFilter;
 
+    /**
+     * RealSenseFrameSetListenerComponent component
+     */
     class NAPAPI RealSenseFrameSetListenerComponent : public Component
     {
     RTTI_ENABLE(Component)
     DECLARE_COMPONENT(RealSenseFrameSetListenerComponent, RealSenseFrameSetListenerComponentInstance)
     public:
+        /**
+         * Constructor
+         */
         RealSenseFrameSetListenerComponent();
 
+        /**
+         * Destructor
+         */
         virtual ~RealSenseFrameSetListenerComponent();
 
-        ResourcePtr<RealSenseDevice> mDevice; ///< Property: 'Device' the device this component receives frames from
+        ResourcePtr<RealSenseDevice> mDevice; ///< Property: 'Device' the device this component receives framesets from
+        ERealSenseStreamType mStreamType = ERealSenseStreamType::REALSENSE_STREAMTYPE_COLOR; ///< Property: 'Stream' the stream type we're interested in
+        std::vector<ResourcePtr<RealSenseFrameFilter>> mFilters; ///< Property: 'Filters' any filters we want to apply to the frame
     };
 
+    /**
+     * RealSenseFrameSetListenerComponentInstance listens to frames and applies any necessary processing/filtering
+     * Calls frameReceived signal with filtered frame
+     */
     class NAPAPI RealSenseFrameSetListenerComponentInstance : public ComponentInstance
     {
         friend class RealSenseDevice;
     RTTI_ENABLE(ComponentInstance)
     public:
+        /**
+         * Constructor
+         * @param entity
+         * @param resource
+         */
+        RealSenseFrameSetListenerComponentInstance(EntityInstance& entity, Component& resource) ;
 
-        RealSenseFrameSetListenerComponentInstance(EntityInstance& entity, Component& resource) :
-            ComponentInstance(entity, resource)									{ }
-
+        /**
+         * Destructor
+         */
         virtual ~RealSenseFrameSetListenerComponentInstance();
 
+        /**
+         * Initialization
+         * @param errorState contains any errors
+         * @return true on success
+         */
         virtual bool init(utility::ErrorState& errorState) override final;
 
+        /**
+         * Called before deconstruction
+         */
         virtual void onDestroy() override final;
 
-        Signal<const rs2::frameset&> frameSetReceived;
+        // Called when frame of streamtype is received and filtered, called from RealSense processing thread
+        Signal<const rs2::frame&> frameReceived;
     protected:
+        /**
+         * internal initialization method called from init
+         * @param errorState contains any errors
+         * @return true on success
+         */
         virtual bool onInit(utility::ErrorState& errorState);
 
+        /**
+         * Called before deconstruction
+         */
         virtual void destroy();
 
-        void trigger(const rs2::frameset& frame);
+        /**
+         * Called from RealSense device upon receiving a new frameset, called from RealSense processing thread
+         */
+        void trigger(const rs2::frameset& frameset);
 
         RealSenseDevice* mDevice;
+        ERealSenseStreamType mStreamType;
+        std::vector<RealSenseFrameFilter*> mFilters;
     };
 }

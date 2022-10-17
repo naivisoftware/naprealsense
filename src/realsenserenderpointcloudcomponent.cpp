@@ -23,9 +23,21 @@ RTTI_END_CLASS
 
 namespace nap
 {
+    //////////////////////////////////////////////////////////////////////////
+    // RealSenseRenderPointCloudComponent
+    //////////////////////////////////////////////////////////////////////////
+
+
     RealSenseRenderPointCloudComponent::RealSenseRenderPointCloudComponent(){}
 
+
     RealSenseRenderPointCloudComponent::~RealSenseRenderPointCloudComponent(){}
+
+
+    //////////////////////////////////////////////////////////////////////////
+    // RealSenseRenderPointCloudComponentInstance
+    //////////////////////////////////////////////////////////////////////////
+
 
     RealSenseRenderPointCloudComponentInstance::RealSenseRenderPointCloudComponentInstance(EntityInstance& entity, Component& resource)
         : RenderableMeshComponentInstance(entity, resource)
@@ -51,6 +63,7 @@ namespace nap
 
         return true;
     }
+
 
     void RealSenseRenderPointCloudComponentInstance::onDraw(nap::IRenderTarget& renderTarget,
                                                             VkCommandBuffer commandBuffer, const glm::mat4& viewMatrix,

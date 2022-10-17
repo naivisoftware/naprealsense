@@ -25,19 +25,39 @@ RTTI_END_CLASS
 
 namespace nap
 {
+    //////////////////////////////////////////////////////////////////////////
+    // RealSenseFrameFilter
+    //////////////////////////////////////////////////////////////////////////
+
+
     RealSenseFrameFilter::RealSenseFrameFilter(){}
+
 
     RealSenseFrameFilter::~RealSenseFrameFilter(){}
 
-    RealSenseSpatialFilter::RealSenseSpatialFilter(){}
 
-    RealSenseSpatialFilter::~RealSenseSpatialFilter(){}
+    //////////////////////////////////////////////////////////////////////////
+    // RealSenseSpatialFilter::Impl
+    //////////////////////////////////////////////////////////////////////////
+
 
     struct RealSenseSpatialFilter::Impl
     {
     public:
         rs2::spatial_filter mSpatFilter;
     };
+
+
+    //////////////////////////////////////////////////////////////////////////
+    // RealSenseSpatialFilter
+    //////////////////////////////////////////////////////////////////////////
+
+
+    RealSenseSpatialFilter::RealSenseSpatialFilter(){}
+
+
+    RealSenseSpatialFilter::~RealSenseSpatialFilter(){}
+
 
     bool RealSenseSpatialFilter::init(utility::ErrorState &errorState)
     {
@@ -49,20 +69,35 @@ namespace nap
         return true;
     }
 
+
     rs2::frame RealSenseSpatialFilter::process(const rs2::frame& frame)
     {
         return mImpl->mSpatFilter.filter::process(frame);
     }
 
-    RealSenseDecFilter::RealSenseDecFilter(){}
 
-    RealSenseDecFilter::~RealSenseDecFilter(){}
+    //////////////////////////////////////////////////////////////////////////
+    // RealSenseDecFilter::Impl
+    //////////////////////////////////////////////////////////////////////////
+
 
     struct RealSenseDecFilter::Impl
     {
     public:
         rs2::decimation_filter mDecFilter;
     };
+
+
+    //////////////////////////////////////////////////////////////////////////
+    // RealSenseDecFilter
+    //////////////////////////////////////////////////////////////////////////
+
+
+    RealSenseDecFilter::RealSenseDecFilter(){}
+
+
+    RealSenseDecFilter::~RealSenseDecFilter(){}
+
 
     bool RealSenseDecFilter::init(utility::ErrorState &errorState)
     {
@@ -76,9 +111,11 @@ namespace nap
         return mImpl->mDecFilter.filter::process(frame);
     }
 
-    RealSenseColorizeFilter::RealSenseColorizeFilter(){}
 
-    RealSenseColorizeFilter::~RealSenseColorizeFilter(){}
+    //////////////////////////////////////////////////////////////////////////
+    // RealSenseColorizeFilter::Impl
+    //////////////////////////////////////////////////////////////////////////
+
 
     struct RealSenseColorizeFilter::Impl
     {
@@ -86,15 +123,53 @@ namespace nap
         rs2::colorizer mColorizer;
     };
 
-    RealSenseDisparityFilter::RealSenseDisparityFilter(){}
 
-    RealSenseDisparityFilter::~RealSenseDisparityFilter(){}
+    //////////////////////////////////////////////////////////////////////////
+    // RealSenseColorizeFilter
+    //////////////////////////////////////////////////////////////////////////
+
+
+    RealSenseColorizeFilter::RealSenseColorizeFilter(){}
+
+
+    RealSenseColorizeFilter::~RealSenseColorizeFilter(){}
+
+
+    bool RealSenseColorizeFilter::init(utility::ErrorState &errorState)
+    {
+        mImpl = std::make_unique<Impl>();
+        return true;
+    }
+
+
+    rs2::frame RealSenseColorizeFilter::process(const rs2::frame& frame)
+    {
+        return mImpl->mColorizer.process(frame);
+    }
+
+
+    //////////////////////////////////////////////////////////////////////////
+    // RealSenseDisparityFilter::Impl
+    //////////////////////////////////////////////////////////////////////////
+
 
     struct RealSenseDisparityFilter::Impl
     {
     public:
         rs2::disparity_transform mDisparityTransform;
     };
+
+
+    //////////////////////////////////////////////////////////////////////////
+    // RealSenseDisparityFilter
+    //////////////////////////////////////////////////////////////////////////
+
+
+    RealSenseDisparityFilter::RealSenseDisparityFilter(){}
+
+
+    RealSenseDisparityFilter::~RealSenseDisparityFilter(){}
+
 
     bool RealSenseDisparityFilter::init(utility::ErrorState &errorState)
     {
@@ -107,16 +182,5 @@ namespace nap
     rs2::frame RealSenseDisparityFilter::process(const rs2::frame& frame)
     {
         return mImpl->mDisparityTransform.filter::process(frame);
-    }
-
-    bool RealSenseColorizeFilter::init(utility::ErrorState &errorState)
-    {
-        mImpl = std::make_unique<Impl>();
-        return true;
-    }
-
-    rs2::frame RealSenseColorizeFilter::process(const rs2::frame& frame)
-    {
-        return mImpl->mColorizer.process(frame);
     }
 }

@@ -12,9 +12,21 @@ RTTI_END_CLASS
 
 namespace nap
 {
+    //////////////////////////////////////////////////////////////////////////
+    // RealSenseFrameSetFilter
+    //////////////////////////////////////////////////////////////////////////
+
+
     RealSenseFrameSetFilter::RealSenseFrameSetFilter(){}
 
+
     RealSenseFrameSetFilter::~RealSenseFrameSetFilter(){}
+
+
+    //////////////////////////////////////////////////////////////////////////
+    // RealSenseFrameSetAlignFilter::Impl
+    //////////////////////////////////////////////////////////////////////////
+
 
     struct RealSenseFrameSetAlignFilter::Impl
     {
@@ -25,9 +37,17 @@ namespace nap
         rs2::align mAlign;
     };
 
+
+    //////////////////////////////////////////////////////////////////////////
+    // RealSenseFrameSetAlignFilter
+    //////////////////////////////////////////////////////////////////////////
+
+
     RealSenseFrameSetAlignFilter::RealSenseFrameSetAlignFilter(){}
 
+
     RealSenseFrameSetAlignFilter::~RealSenseFrameSetAlignFilter(){}
+
 
     bool RealSenseFrameSetAlignFilter::init(utility::ErrorState &errorState)
     {
@@ -35,6 +55,7 @@ namespace nap
 
         return true;
     }
+
 
     rs2::frameset RealSenseFrameSetAlignFilter::process(const rs2::frameset& frameset)
     {

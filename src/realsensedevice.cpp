@@ -16,11 +16,27 @@ RTTI_BEGIN_CLASS_NO_DEFAULT_CONSTRUCTOR(nap::RealSenseDevice)
     RTTI_PROPERTY("Serial", &nap::RealSenseDevice::mSerial, nap::rtti::EPropertyMetaData::Default)
     RTTI_PROPERTY("MaxFrameSize", &nap::RealSenseDevice::mMaxFrameSize, nap::rtti::EPropertyMetaData::Default)
     RTTI_PROPERTY("Streams", &nap::RealSenseDevice::mStreams, nap::rtti::EPropertyMetaData::Embedded)
-    RTTI_PROPERTY("Filters", &nap::RealSenseDevice::mFilters, nap::rtti::EPropertyMetaData::Embedded)
+    RTTI_PROPERTY("FrameSetFilters", &nap::RealSenseDevice::mFrameSetFilter, nap::rtti::EPropertyMetaData::Embedded)
+    RTTI_PROPERTY("AllowFailure", &nap::RealSenseDevice::mAllowFailure, nap::rtti::EPropertyMetaData::Default)
 RTTI_END_CLASS
 
 namespace nap
 {
+    //////////////////////////////////////////////////////////////////////////
+    // RealSenseStreamDescription
+    //////////////////////////////////////////////////////////////////////////
+
+    RealSenseStreamDescription::RealSenseStreamDescription(){}
+
+
+    RealSenseStreamDescription::~RealSenseStreamDescription(){}
+
+
+    //////////////////////////////////////////////////////////////////////////
+    // RealSenseDevice::Impl
+    //////////////////////////////////////////////////////////////////////////
+
+
     struct RealSenseDevice::Impl
     {
     public:
@@ -33,9 +49,16 @@ namespace nap
         rs2::config mConfig;
     };
 
+
+    //////////////////////////////////////////////////////////////////////////
+    // RealSenseDevice
+    //////////////////////////////////////////////////////////////////////////
+
+
     RealSenseDevice::RealSenseDevice(RealSenseService &service) : mService(service)
     {
     }
+
 
     RealSenseDevice::~RealSenseDevice(){}
 
@@ -51,11 +74,11 @@ namespace nap
             {
                 if(!errorState.check(mService.hasSerialNumber(mSerial),
                                      utility::stringFormat("Device with serial number %s is not connected", mSerial.c_str())))
-                    return false;
+                    return mAllowFailure;
             }
 
            if(!mService.registerDevice(this, errorState))
-               return false;
+               return mAllowFailure;
 
             std::vector<ERealSenseStreamType> stream_types;
             for(const auto& stream : mStreams)
@@ -67,7 +90,7 @@ namespace nap
                                     { return stream_type == other; }) != stream_types.end())
                 {
                     errorState.fail("Cannot open multiple streams of the same stream type!");
-                    return false;
+                    return mAllowFailure;
                 }
 
                 stream_types.emplace_back(stream_type);
@@ -139,12 +162,12 @@ namespace nap
                                                       e.get_failed_function().c_str(),
                                                       e.get_failed_args().c_str(),
                                                       e.what()));
-                return false;
+                return mAllowFailure;
             }
             catch(const std::exception& e)
             {
                 errorState.fail(e.what());
-                return false;
+                return mAllowFailure;
             }
 
             mRun.store(true);
@@ -186,11 +209,6 @@ namespace nap
     }
 
 
-    void RealSenseDevice::update(double deltaTime)
-    {
-    }
-
-
     void RealSenseDevice::addFrameSetListener(RealSenseFrameSetListenerComponentInstance* frameSetListener)
     {
         auto it = std::find(mFrameSetListeners.begin(), mFrameSetListeners.end(), frameSetListener);
@@ -214,7 +232,7 @@ namespace nap
             rs2::frameset data;
             if(mImplementation->mPipe.poll_for_frames(&data))
             {
-                for(auto& filter : mFilters)
+                for(auto& filter : mFrameSetFilter)
                 {
                     data = filter->process(data);
                 }

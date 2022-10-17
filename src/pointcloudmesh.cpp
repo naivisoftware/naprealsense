@@ -8,6 +8,8 @@ RTTI_BEGIN_CLASS_NO_DEFAULT_CONSTRUCTOR(nap::PointCloudMesh)
     RTTI_PROPERTY("Rows", &nap::PointCloudMesh::mRows, nap::rtti::EPropertyMetaData::Default)
     RTTI_PROPERTY("Colums", &nap::PointCloudMesh::mColums, nap::rtti::EPropertyMetaData::Default)
     RTTI_PROPERTY("Size", &nap::PointCloudMesh::mColums, nap::rtti::EPropertyMetaData::Default)
+    RTTI_PROPERTY("Usage", &nap::PointCloudMesh::mUsage, nap::rtti::EPropertyMetaData::Default)
+    RTTI_PROPERTY("CullMode", &nap::PointCloudMesh::mCullMode, nap::rtti::EPropertyMetaData::Default)
 RTTI_END_CLASS
 
 namespace nap

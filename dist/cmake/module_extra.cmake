@@ -17,9 +17,12 @@ if(WIN32)
             )
 elseif(UNIX)
     # Install realsense lib into packaged project
-    file(GLOB REALSENSE_DYLIBS ${THIRDPARTY_DIR}/librealsense/bin/realsense*${CMAKE_SHARED_LIBRARY_SUFFIX}*)
+    file(GLOB REALSENSE_DYLIBS ${THIRDPARTY_DIR}/librealsense/bin/librealsense2*${CMAKE_SHARED_LIBRARY_SUFFIX}*)
     install(FILES ${REALSENSE_DYLIBS} DESTINATION lib)
 endif()
 
-# Install artnet license into packaged project
+# Install realsense license into packaged project
 install(FILES ${THIRDPARTY_DIR}/librealsense/LICENSE DESTINATION licenses/librealsense)
+
+# Install data directory
+install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/data DESTINATION modules/mod_naprealsense)
