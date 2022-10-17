@@ -47,19 +47,33 @@ namespace nap
 
 	bool RealSenseService::init(nap::utility::ErrorState& errorState)
 	{
-        rs2::context ctx;
-        auto list = ctx.query_devices(); // Get a snapshot of currently connected devices
-
-        nap::Logger::info("There are %d connected RealSense devices.", list.size());
-        for(size_t i = 0 ; i < list.size(); i++)
+        try
         {
-            rs2::device device = list[i];
+            rs2::context ctx;
+            auto list = ctx.query_devices(); // Get a snapshot of currently connected devices
 
-            nap::Logger::info("RealSense device %i, an %s", i,  device.get_info(RS2_CAMERA_INFO_NAME));
-            nap::Logger::info("    Serial number: %s", device.get_info(RS2_CAMERA_INFO_SERIAL_NUMBER));
-            nap::Logger::info("    Firmware version: %s", device.get_info(RS2_CAMERA_INFO_FIRMWARE_VERSION));
+            nap::Logger::info("There are %d connected RealSense devices.", list.size());
+            for(size_t i = 0 ; i < list.size(); i++)
+            {
+                rs2::device device = list[i];
 
-            mConnectedSerialNumbers.emplace_back(std::string(device.get_info(RS2_CAMERA_INFO_SERIAL_NUMBER)));
+                nap::Logger::info("RealSense device %i, an %s", i,  device.get_info(RS2_CAMERA_INFO_NAME));
+                nap::Logger::info("    Serial number: %s", device.get_info(RS2_CAMERA_INFO_SERIAL_NUMBER));
+                nap::Logger::info("    Firmware version: %s", device.get_info(RS2_CAMERA_INFO_FIRMWARE_VERSION));
+
+                mConnectedSerialNumbers.emplace_back(std::string(device.get_info(RS2_CAMERA_INFO_SERIAL_NUMBER)));
+            }
+        }catch(const rs2::error& e)
+        {
+            nap::Logger::error(utility::stringFormat("Error query RealSense devices : %s(%s)\n      %s",
+                                           e.get_failed_function().c_str(),
+                                           e.get_failed_args().c_str(),
+                                           e.what()));
+        }
+        catch(const std::exception& e)
+        {
+            nap::Logger::error(utility::stringFormat("Error query RealSense devices : %s",
+                                                     e.what()));
         }
 
 		return true;
