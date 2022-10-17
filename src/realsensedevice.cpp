@@ -101,7 +101,6 @@ namespace nap
             }
 
             //
-
             if(!mSerial.empty())
                 mImplementation->mConfig.enable_device(mSerial);
 
@@ -109,65 +108,76 @@ namespace nap
             {
                 mImplementation->mPipe.start(mImplementation->mConfig);
 
+                /**
+                 * Get camera intrinsics for all streams
+                 */
                 for(auto& stream : mStreams)
                 {
-                    if(stream->mStream == ERealSenseStreamType::REALSENSE_STREAMTYPE_COLOR)
+                    if(mImplementation->mPipe.get_active_profile()
+                        .get_stream(static_cast<rs2_stream>(stream->mStream))
+                        .is<rs2::video_stream_profile>())
                     {
-                        auto intrincics_rs2 = mImplementation->mPipe
-                                                    .get_active_profile()
-                                                    .get_stream(static_cast<rs2_stream>(stream->mStream))
-                                                    .as<rs2::video_stream_profile>()
-                                                    .get_intrinsics();
+                        auto intrinsics_rs2 = mImplementation->mPipe
+                                .get_active_profile()
+                                .get_stream(static_cast<rs2_stream>(stream->mStream))
+                                .as<rs2::video_stream_profile>()
+                                .get_intrinsics();
 
-                        RealSenseCameraIntrincics intrincics;
-                        intrincics.mHeight = intrincics_rs2.height;
-                        intrincics.mWidth = intrincics_rs2.width;
+                        RealSenseCameraIntrincics intrinsics;
+                        intrinsics.mHeight = intrinsics_rs2.height;
+                        intrinsics.mWidth = intrinsics_rs2.width;
                         for(int i = 0 ; i < 5; i++)
                         {
-                            intrincics.mCoeffs[i] = intrincics_rs2.coeffs[i];
+                            intrinsics.mCoeffs[i] = intrinsics_rs2.coeffs[i];
                         }
-                        intrincics.mFX = intrincics_rs2.fx;
-                        intrincics.mFY = intrincics_rs2.fy;
-                        intrincics.mPPX = intrincics_rs2.ppx;
-                        intrincics.mPPY = intrincics_rs2.ppy;
-                        intrincics.mModel = static_cast<ERealSenseDistortionModels>(intrincics_rs2.model);
-                        mCameraIntrinsics.emplace(ERealSenseStreamType::REALSENSE_STREAMTYPE_COLOR, intrincics);
-                    }else if(stream->mStream == ERealSenseStreamType::REALSENSE_STREAMTYPE_DEPTH)
-                    {
-                        auto intrincics_rs2 = mImplementation->mPipe
-                            .get_active_profile()
-                            .get_stream(static_cast<rs2_stream>(stream->mStream))
-                            .as<rs2::video_stream_profile>()
-                            .get_intrinsics();
-
-                        RealSenseCameraIntrincics intrincics;
-                        intrincics.mHeight = intrincics_rs2.height;
-                        intrincics.mWidth = intrincics_rs2.width;
-                        for(int i = 0 ; i < 5; i++)
-                        {
-                            intrincics.mCoeffs[i] = intrincics_rs2.coeffs[i];
-                        }
-                        intrincics.mFX = intrincics_rs2.fx;
-                        intrincics.mFY = intrincics_rs2.fy;
-                        intrincics.mPPX = intrincics_rs2.ppx;
-                        intrincics.mPPY = intrincics_rs2.ppy;
-                        intrincics.mModel = static_cast<ERealSenseDistortionModels>(intrincics_rs2.model);
-                        mCameraIntrinsics.emplace(ERealSenseStreamType::REALSENSE_STREAMTYPE_DEPTH, intrincics);
+                        intrinsics.mFX = intrinsics_rs2.fx;
+                        intrinsics.mFY = intrinsics_rs2.fy;
+                        intrinsics.mPPX = intrinsics_rs2.ppx;
+                        intrinsics.mPPY = intrinsics_rs2.ppy;
+                        intrinsics.mModel = static_cast<ERealSenseDistortionModels>(intrinsics_rs2.model);
+                        mCameraIntrinsics.emplace(stream->mStream, intrinsics);
                     }
                 }
 
+                /**
+                 * Gather device info
+                 */
+                mCameraInfo.mName = std::string(mImplementation->mPipe.get_active_profile().get_device().get_info(rs2_camera_info::RS2_CAMERA_INFO_NAME));
+                mCameraInfo.mSerial = std::string(mImplementation->mPipe.get_active_profile().get_device().get_info(rs2_camera_info::RS2_CAMERA_INFO_SERIAL_NUMBER));
+                mCameraInfo.mFirmware = std::string(mImplementation->mPipe.get_active_profile().get_device().get_info(rs2_camera_info::RS2_CAMERA_INFO_FIRMWARE_VERSION));
+                mCameraInfo.mProductID = std::string(mImplementation->mPipe.get_active_profile().get_device().get_info(rs2_camera_info::RS2_CAMERA_INFO_PRODUCT_ID));
+                mCameraInfo.mProductLine = std::string(mImplementation->mPipe.get_active_profile().get_device().get_info(rs2_camera_info::RS2_CAMERA_INFO_PRODUCT_LINE));
             }catch(const rs2::error& e)
             {
-                errorState.fail(utility::stringFormat("RealSense error calling %s(%s)\n     %s,",
-                                                      e.get_failed_function().c_str(),
-                                                      e.get_failed_args().c_str(),
-                                                      e.what()));
-                return mAllowFailure;
+                if(mAllowFailure)
+                {
+                    nap::Logger::error(*this, utility::stringFormat("RealSense error calling %s(%s)\n     %s,",
+                                                          e.get_failed_function().c_str(),
+                                                          e.get_failed_args().c_str(),
+                                                          e.what()));
+
+                    return true;
+                }else
+                {
+                    errorState.fail(utility::stringFormat("RealSense error calling %s(%s)\n     %s,",
+                                                          e.get_failed_function().c_str(),
+                                                          e.get_failed_args().c_str(),
+                                                          e.what()));
+                    return false;
+                }
+
             }
             catch(const std::exception& e)
             {
-                errorState.fail(e.what());
-                return mAllowFailure;
+                if(mAllowFailure)
+                {
+                    nap::Logger::error(*this, e.what());
+                    return true;
+                }else
+                {
+                    errorState.fail(e.what());
+                    return false;
+                }
             }
 
             mRun.store(true);

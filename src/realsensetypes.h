@@ -76,4 +76,13 @@ namespace nap
         ERealSenseDistortionModels mModel;    /**< Distortion model of the image */
         float         mCoeffs[5]; /**< Distortion coefficients. Order for Brown-Conrady: [k1, k2, p1, p2, k3]. Order for F-Theta Fish-eye: [k1, k2, k3, k4, 0]. Other models are subject to their own interpretations */
     };
+
+    struct NAPAPI RealSenseCameraInfo
+    {
+        std::string mName;
+        std::string mSerial;
+        std::string mFirmware;
+        std::string mProductID;
+        std::string mProductLine;
+    };
 }
