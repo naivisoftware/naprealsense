@@ -22,4 +22,4 @@ elseif(UNIX)
 endif()
 
 # Install artnet license into packaged project
-install(FILES ${THIRDPARTY_DIR}/librealsense/COPYING DESTINATION licenses/librealsense)
+install(FILES ${THIRDPARTY_DIR}/librealsense/LICENSE DESTINATION licenses/librealsense)

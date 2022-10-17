@@ -37,8 +37,28 @@ endif()
 
 # Package into platform release
 if(UNIX)
-    set(LINUX_EXTRA_RPATH ../../../../thirdparty/realsense/lib)
+    set(LINUX_EXTRA_RPATH ../../../../thirdparty/librealsense/bin)
+endif()
+package_module()
+
+# Package libartnet into platform release
+# Install docs
+install(FILES ${REALSENSE_DIR}/LICENSE DESTINATION thirdparty/librealsense)
+#install(FILES ${THIRDPARTY_DIR}/librealsense/source/COPYING DESTINATION thirdparty/librealsense)
+#install(FILES ${THIRDPARTY_DIR}/librealsense/source/README DESTINATION thirdparty/librealsense)
+
+# install includes
+install(DIRECTORY ${REALSENSE_INCLUDE_DIR}/ DESTINATION thirdparty/librealsense/include)
+
+# install libraries
+if(UNIX AND NOT APPLE)
+    install(FILES ${REALSENSE_LIBRARIES_RELEASE} DESTINATION thirdparty/librealsense/bin)
+else()
+    install(FILES $<TARGET_FILE:realsense> DESTINATION thirdparty/librealsense/bin)
 endif()
 
-# Package into platform release
-package_module()
+# set realsense install name
+if(WIN32)
+    install(FILES $<TARGET_FILE_DIR:realsense>/realsense2.lib DESTINATION thirdparty/librealsense/bin)
+endif()
+
