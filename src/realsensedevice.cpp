@@ -65,19 +65,45 @@ namespace nap
 
     bool RealSenseDevice::start(utility::ErrorState &errorState)
     {
+        /**
+         * Handle error lambda
+         * Fills error state and returns false upon failure
+         * If failure is allowed, still return false but only log error message
+         */
+        auto handle_error = [this, &errorState](bool successCondition, const std::string& errorMessage) mutable -> bool
+        {
+            if(!successCondition)
+            {
+                if(mAllowFailure)
+                {
+                    nap::Logger::error(*this, errorMessage);
+                }else
+                {
+                    errorState.fail(errorMessage);
+                }
+
+                return false;
+            }
+
+            return true;
+        };
+
         if(!mRun.load())
         {
             mImplementation = std::make_unique<Impl>();
             mImplementation->mFrameQueue = rs2::frame_queue(mMaxFrameSize);
 
+            if(!handle_error(!mService.getConnectedSerialNumbers().empty(), "No RealSense devices connected!"))
+                return mAllowFailure;
+
             if(!mSerial.empty())
             {
-                if(!errorState.check(mService.hasSerialNumber(mSerial),
-                                     utility::stringFormat("Device with serial number %s is not connected", mSerial.c_str())))
+                if(!handle_error(mService.hasSerialNumber(mSerial),
+                                 utility::stringFormat("Device with serial number %s is not connected", mSerial.c_str())))
                     return mAllowFailure;
             }
 
-           if(!mService.registerDevice(this, errorState))
+           if(!handle_error(mService.registerDevice(this, errorState), "Cannot register device"))
                return mAllowFailure;
 
             std::vector<ERealSenseStreamType> stream_types;
@@ -149,35 +175,17 @@ namespace nap
                 mCameraInfo.mProductLine = std::string(mImplementation->mPipe.get_active_profile().get_device().get_info(rs2_camera_info::RS2_CAMERA_INFO_PRODUCT_LINE));
             }catch(const rs2::error& e)
             {
-                if(mAllowFailure)
-                {
-                    nap::Logger::error(*this, utility::stringFormat("RealSense error calling %s(%s)\n     %s,",
+                handle_error(false, utility::stringFormat("RealSense error calling %s(%s)\n     %s,",
                                                           e.get_failed_function().c_str(),
                                                           e.get_failed_args().c_str(),
                                                           e.what()));
-
-                    return true;
-                }else
-                {
-                    errorState.fail(utility::stringFormat("RealSense error calling %s(%s)\n     %s,",
-                                                          e.get_failed_function().c_str(),
-                                                          e.get_failed_args().c_str(),
-                                                          e.what()));
-                    return false;
-                }
+                return mAllowFailure;
 
             }
             catch(const std::exception& e)
             {
-                if(mAllowFailure)
-                {
-                    nap::Logger::error(*this, e.what());
-                    return true;
-                }else
-                {
-                    errorState.fail(e.what());
-                    return false;
-                }
+                handle_error(false, e.what());
+                return mAllowFailure;
             }
 
             mRun.store(true);
@@ -186,9 +194,9 @@ namespace nap
             return true;
         }
 
-        errorState.fail("RealSenseDevice already started.");
+        handle_error(false, "RealSenseDevice already started.");
 
-        return false;
+        return mAllowFailure;
     }
 
 
@@ -207,7 +215,21 @@ namespace nap
             if(mCaptureTask.valid())
                 mCaptureTask.wait();
 
-            mImplementation->mPipe.stop();
+            try
+            {
+                mImplementation->mPipe.stop();
+            }catch(const rs2::error& e)
+            {
+                nap::Logger::error(*this, utility::stringFormat("RealSense error calling %s(%s)\n     %s,",
+                                                          e.get_failed_function().c_str(),
+                                                          e.get_failed_args().c_str(),
+                                                          e.what()));
+
+            }
+            catch(const std::exception& e)
+            {
+                nap::Logger::error(*this, e.what());
+            }
 
             mService.removeDevice(this);
         }
@@ -237,21 +259,37 @@ namespace nap
 
     void RealSenseDevice::process()
     {
-        while(mRun.load())
+        try
         {
-            rs2::frameset data;
-            if(mImplementation->mPipe.poll_for_frames(&data))
+            while(mRun.load())
             {
-                for(auto& filter : mFrameSetFilter)
+                rs2::frameset data;
+                if(mImplementation->mPipe.poll_for_frames(&data))
                 {
-                    data = filter->process(data);
-                }
+                    for(auto& filter : mFrameSetFilter)
+                    {
+                        data = filter->process(data);
+                    }
 
-                for(auto* frameset_listener : mFrameSetListeners)
-                {
-                    frameset_listener->trigger(data);
+                    for(auto* frameset_listener : mFrameSetListeners)
+                    {
+                        frameset_listener->trigger(data);
+                    }
                 }
             }
+        }catch(const rs2::error& e)
+        {
+            nap::Logger::error(*this, utility::stringFormat("RealSense error calling %s(%s)\n     %s,",
+                                                            e.get_failed_function().c_str(),
+                                                            e.get_failed_args().c_str(),
+                                                            e.what()));
+
         }
+        catch(const std::exception& e)
+        {
+            nap::Logger::error(*this, e.what());
+        }
+
+        mRun.store(false);
     }
 }
