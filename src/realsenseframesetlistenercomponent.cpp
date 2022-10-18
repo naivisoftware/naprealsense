@@ -7,6 +7,7 @@
 RTTI_BEGIN_CLASS(nap::RealSenseFrameSetListenerComponent)
     RTTI_PROPERTY("RealSenseDevice", &nap::RealSenseFrameSetListenerComponent::mDevice, nap::rtti::EPropertyMetaData::Required)
     RTTI_PROPERTY("Filters", &nap::RealSenseFrameSetListenerComponent::mFilters, nap::rtti::EPropertyMetaData::Embedded)
+    RTTI_PROPERTY("StreamType", &nap::RealSenseFrameSetListenerComponent::mStreamType, nap::rtti::EPropertyMetaData::Default)
 RTTI_END_CLASS
 
 RTTI_BEGIN_CLASS_NO_DEFAULT_CONSTRUCTOR(nap::RealSenseFrameSetListenerComponentInstance)

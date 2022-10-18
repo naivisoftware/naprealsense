@@ -5,7 +5,6 @@
 
 RTTI_BEGIN_CLASS(nap::RealSenseRenderFrameComponent)
     RTTI_PROPERTY("Format", &nap::RealSenseRenderFrameComponent::mFormat, nap::rtti::EPropertyMetaData::Default)
-    RTTI_PROPERTY("StreamType", &nap::RealSenseRenderFrameComponent::mStreamType, nap::rtti::EPropertyMetaData::Default)
 RTTI_END_CLASS
 
 RTTI_BEGIN_CLASS_NO_DEFAULT_CONSTRUCTOR(nap::RealSenseRenderFrameComponentInstance)
