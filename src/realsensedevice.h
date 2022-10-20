@@ -113,6 +113,8 @@ namespace nap
          */
         const RealSenseCameraInfo& getCameraInfo() const{ return mCameraInfo; }
 
+        bool getIsConnected() const{ return mIsConnected; }
+
         // properties
         std::string mSerial; ///< Property: 'Serial' serial of device to use, keep empty to get first device available
         int mMaxFrameSize = 5; ///< Property: 'MaxFrameSize' maximum size of frame queue
@@ -124,6 +126,8 @@ namespace nap
 
         std::future<void>		mCaptureTask;
         std::atomic_bool        mRun = { false };
+
+        bool mIsConnected = false;
 
         RealSenseService&       mService;
         RealSenseCameraInfo     mCameraInfo;

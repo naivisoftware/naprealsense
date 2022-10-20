@@ -190,6 +190,7 @@ namespace nap
 
             mRun.store(true);
             mCaptureTask = std::async(std::launch::async, std::bind(&RealSenseDevice::process, this));
+            mIsConnected = true;
 
             return true;
         }
@@ -291,5 +292,6 @@ namespace nap
         }
 
         mRun.store(false);
+        mIsConnected = false;
     }
 }
