@@ -1,6 +1,8 @@
+# Module
 project(mod_naprealsense)
 
-find_package(realsense REQUIRED)
+# Find package configuration
+find_package(realsense PATHS ${THIRDPARTY_DIR}/realsense/cmake REQUIRED)
 
 # add all cpp files to SOURCES
 file(GLOB SOURCES src/*.cpp)
@@ -41,14 +43,16 @@ if(UNIX)
 endif()
 package_module()
 
-# Package libartnet into platform release
+# Package librealsense
+
 # Install docs
 install(FILES ${REALSENSE_DIR}/LICENSE DESTINATION thirdparty/librealsense)
-#install(FILES ${THIRDPARTY_DIR}/librealsense/source/COPYING DESTINATION thirdparty/librealsense)
-#install(FILES ${THIRDPARTY_DIR}/librealsense/source/README DESTINATION thirdparty/librealsense)
 
 # install includes
 install(DIRECTORY ${REALSENSE_INCLUDE_DIR}/ DESTINATION thirdparty/librealsense/include)
+
+# Install cmake dist
+install(DIRECTORY ${THIRDPARTY_DIR}/realsense/cmake/dist/ DESTINATION thirdparty/librealsense/cmake)
 
 # install libraries
 if(UNIX AND NOT APPLE)
