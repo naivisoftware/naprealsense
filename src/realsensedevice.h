@@ -99,7 +99,7 @@ namespace nap
          * Returns map of camera intrinsics of every available stream
          * @return map of camera intrinsics of every available stream
          */
-        const std::unordered_map<ERealSenseStreamType, RealSenseCameraIntrincics>& getIntrincicsMap() const{ return mCameraIntrinsics; }
+        const std::unordered_map<ERealSenseStreamType, RealSenseCameraIntrinsics>& getIntrincicsMap() const{ return mCameraIntrinsics; }
 
         /**
          * Returns current depth scale in meters per unit
@@ -136,7 +136,7 @@ namespace nap
         std::unique_ptr<Impl>   mImplementation;
 
         std::vector<RealSenseFrameSetListenerComponentInstance*> mFrameSetListeners;
-        std::unordered_map<ERealSenseStreamType, RealSenseCameraIntrincics> mCameraIntrinsics;
+        std::unordered_map<ERealSenseStreamType, RealSenseCameraIntrinsics> mCameraIntrinsics;
     };
 
     using RealSenseDeviceObjectCreator = rtti::ObjectCreator<RealSenseDevice, RealSenseService>;

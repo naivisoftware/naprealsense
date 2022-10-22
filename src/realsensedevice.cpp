@@ -135,7 +135,7 @@ namespace nap
                 mImplementation->mPipe.start(mImplementation->mConfig);
 
                 /**
-                 * Get camera intrinsics for all streams
+                 * Gather camera intrinsics for all streams
                  */
                 for(auto& stream : mStreams)
                 {
@@ -148,20 +148,7 @@ namespace nap
                                 .get_stream(static_cast<rs2_stream>(stream->mStream))
                                 .as<rs2::video_stream_profile>()
                                 .get_intrinsics();
-
-                        RealSenseCameraIntrincics intrinsics;
-                        intrinsics.mHeight = intrinsics_rs2.height;
-                        intrinsics.mWidth = intrinsics_rs2.width;
-                        for(int i = 0 ; i < 5; i++)
-                        {
-                            intrinsics.mCoeffs[i] = intrinsics_rs2.coeffs[i];
-                        }
-                        intrinsics.mFX = intrinsics_rs2.fx;
-                        intrinsics.mFY = intrinsics_rs2.fy;
-                        intrinsics.mPPX = intrinsics_rs2.ppx;
-                        intrinsics.mPPY = intrinsics_rs2.ppy;
-                        intrinsics.mModel = static_cast<ERealSenseDistortionModels>(intrinsics_rs2.model);
-                        mCameraIntrinsics.emplace(stream->mStream, intrinsics);
+                        mCameraIntrinsics.emplace(stream->mStream, RealSenseCameraIntrinsics::fromRS2Intrinsics(intrinsics_rs2));
                     }
                 }
 
