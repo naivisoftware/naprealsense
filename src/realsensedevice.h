@@ -126,6 +126,7 @@ namespace nap
 
         std::future<void>		mCaptureTask;
         std::atomic_bool        mRun = { false };
+        std::atomic<float>      mLatestDepthScale;
 
         bool mIsConnected = false;
 
@@ -136,6 +137,7 @@ namespace nap
         std::unique_ptr<Impl>   mImplementation;
 
         std::vector<RealSenseFrameSetListenerComponentInstance*> mFrameSetListeners;
+        std::mutex mFrameSetListenerMutex;
         std::unordered_map<ERealSenseStreamType, RealSenseCameraIntrinsics> mCameraIntrinsics;
     };
 

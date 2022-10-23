@@ -190,8 +190,7 @@ namespace nap
 
     float RealSenseDevice::getDepthScale() const
     {
-        auto dpth = mImplementation->mPipe.get_active_profile().get_device().first<rs2::depth_sensor>();
-        return dpth.get_depth_scale();
+        return mLatestDepthScale.load();
     }
 
 
@@ -233,6 +232,8 @@ namespace nap
     {
         auto it = std::find(mFrameSetListeners.begin(), mFrameSetListeners.end(), frameSetListener);
         assert(it == mFrameSetListeners.end()); // device already exists
+
+        std::lock_guard l(mFrameSetListenerMutex);
         mFrameSetListeners.emplace_back(frameSetListener);
     }
 
@@ -241,6 +242,8 @@ namespace nap
     {
         auto it = std::find(mFrameSetListeners.begin(), mFrameSetListeners.end(), frameSetListener);
         assert(it != mFrameSetListeners.end()); // device does not exist
+
+        std::lock_guard l(mFrameSetListenerMutex);
         mFrameSetListeners.erase(it);
     }
 
@@ -251,6 +254,10 @@ namespace nap
         {
             while(mRun.load())
             {
+                // store depth scale
+                mLatestDepthScale.store(mImplementation->mPipe.get_active_profile().get_device().first<rs2::depth_sensor>().get_depth_scale());
+
+                // poll for new frameset
                 rs2::frameset data;
                 if(mImplementation->mPipe.poll_for_frames(&data))
                 {
@@ -259,6 +266,7 @@ namespace nap
                         data = filter->process(data);
                     }
 
+                    std::lock_guard l(mFrameSetListenerMutex);
                     for(auto* frameset_listener : mFrameSetListeners)
                     {
                         frameset_listener->trigger(data);

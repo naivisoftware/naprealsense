@@ -190,4 +190,71 @@ namespace nap
         struct Impl;
         std::unique_ptr<Impl> mImpl;
     };
+
+    class NAPAPI RealSenseCutDistanceFilter : public RealSenseFrameFilter
+    {
+    RTTI_ENABLE(RealSenseFrameFilter)
+    public:
+        /*
+         * Constructor
+         */
+        RealSenseCutDistanceFilter();
+
+        /**
+         * Destructor
+         */
+        virtual ~RealSenseCutDistanceFilter();
+
+        /**
+         * Initialization
+         * @param errorState contains any errors
+         * @return true on success
+         */
+        bool init(utility::ErrorState& errorState) override;
+
+        /**
+         * Must be called from the RealSense process thread by a RealSenseFrameSetListenerComponent
+         * @param frame const reference to frame to filter
+         * @return the filtered frame
+         */
+        rs2::frame process(const rs2::frame& frame) override;
+
+        float mDistance = 1.0f;
+        ResourcePtr<RealSenseDevice> mDevice;
+    private:
+    };
+
+    class NAPAPI RealSenseCopyFrameFilter : public RealSenseFrameFilter
+    {
+    RTTI_ENABLE(RealSenseFrameFilter)
+    public:
+        /*
+         * Constructor
+         */
+        RealSenseCopyFrameFilter();
+
+        /**
+         * Destructor
+         */
+        virtual ~RealSenseCopyFrameFilter();
+
+        /**
+         * Initialization
+         * @param errorState contains any errors
+         * @return true on success
+         */
+        bool init(utility::ErrorState& errorState) override;
+
+        /**
+         * Must be called from the RealSense process thread by a RealSenseFrameSetListenerComponent
+         * @param frame const reference to frame to filter
+         * @return the filtered frame
+         */
+        rs2::frame process(const rs2::frame& frame) override;
+
+        ResourcePtr<RealSenseDevice> mDevice;
+    private:
+        struct Impl;
+        std::unique_ptr<Impl> mImpl;
+    };
 }
