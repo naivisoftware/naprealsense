@@ -34,6 +34,7 @@ namespace nap
          */
         RealSenseRenderFrameComponentInstance* getInstance();
 
+        ERealSenseStreamType mStreamType = ERealSenseStreamType::REALSENSE_STREAMTYPE_COLOR;
         RenderTexture2D::EFormat mFormat = RenderTexture2D::EFormat::RGBA8; ///< Property: 'Format' render texture format
     private:
         RealSenseRenderFrameComponentInstance* mInstance;
@@ -94,11 +95,12 @@ namespace nap
          * Called from RealSense processing thread
          * @param frame
          */
-        void onTrigger(const rs2::frame& frame);
+        virtual void trigger(const rs2::frameset& frameset) override;
     private:
         std::unique_ptr<RenderTexture2D> mRenderTexture;
         RealSenseRenderFrameComponent* mResource;
         RenderTexture2D::EFormat mFormat;
+        ERealSenseStreamType mStreamType;
         bool mTextureInitialized = false;
 
         struct Impl;

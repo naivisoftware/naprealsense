@@ -50,7 +50,6 @@ namespace nap
 
         ResourcePtr<RealSenseDevice> mDevice; ///< Property: 'Device' the device this component receives framesets from
         ERealSenseStreamType mStreamType = ERealSenseStreamType::REALSENSE_STREAMTYPE_COLOR; ///< Property: 'Stream' the stream type we're interested in
-        std::vector<ResourcePtr<RealSenseFrameFilter>> mFilters; ///< Property: 'Filters' any filters we want to apply to the frame
     };
 
     /**
@@ -85,9 +84,6 @@ namespace nap
          * Called before deconstruction
          */
         virtual void onDestroy() override final;
-
-        // Called when frame of streamtype is received and filtered, called from RealSense processing thread
-        Signal<const rs2::frame&> frameReceived;
     protected:
         /**
          * internal initialization method called from init
@@ -104,10 +100,9 @@ namespace nap
         /**
          * Called from RealSense device upon receiving a new frameset, called from RealSense processing thread
          */
-        void trigger(const rs2::frameset& frameset);
+        virtual void trigger(const rs2::frameset& frameset) = 0;
 
         RealSenseDevice* mDevice;
         ERealSenseStreamType mStreamType;
-        std::vector<RealSenseFrameFilter*> mFilters;
     };
 }
