@@ -138,10 +138,11 @@ vec3 deproject_pixel_to_point(vec2 pixel, float depth)
 
 void main(void)
 {
+	float r = texture(depth_texture, in_UV0.xy).r;
 	vec4 c = texture(color_texture, in_UV0.xy).rgba;
-	if(c.a>0.0)
+	if(r>0.0)
 	{
-		vec3 p = deproject_pixel_to_point(in_UV0.xy, texture(depth_texture, in_UV0.xy).r);
+		vec3 p = deproject_pixel_to_point(in_UV0.xy, r);
 		p.y *= -1.0;
 
 		gl_Position =

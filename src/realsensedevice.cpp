@@ -175,6 +175,11 @@ namespace nap
                 return mAllowFailure;
             }
 
+            for(auto& frameset_filter : mFrameSetFilter)
+            {
+                frameset_filter->setDevice(this);
+            }
+
             mRun.store(true);
             mCaptureTask = std::async(std::launch::async, std::bind(&RealSenseDevice::process, this));
             mIsConnected = true;
@@ -256,6 +261,7 @@ namespace nap
             {
                 // store depth scale
                 mLatestDepthScale.store(mImplementation->mPipe.get_active_profile().get_device().first<rs2::depth_sensor>().get_depth_scale());
+                float depth_units = mImplementation->mPipe.get_active_profile().get_device().first<rs2::depth_sensor>().get_option(RS2_OPTION_DEPTH_UNITS);
 
                 // poll for new frameset
                 rs2::frameset data;

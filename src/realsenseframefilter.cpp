@@ -324,7 +324,7 @@ void remove_background(const rs2::depth_frame& depth_frame, rs2::video_frame& ot
                 // Calculate the offset in other frame's buffer to current pixel
                 auto offset = depth_pixel_index * other_bpp;
 
-                // Set pixel to "background" color (0x999999)
+                // Set pixel to "background" color
                 std::memset(&p_other_frame[offset], 0, other_bpp);
             }
         }

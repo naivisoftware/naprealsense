@@ -44,7 +44,10 @@ namespace nap
          * @return the filtered frameset
          */
         virtual rs2::frameset process(const rs2::frameset& frameset) = 0;
-    private:
+
+        void setDevice(RealSenseDevice* device);
+    protected:
+        RealSenseDevice* mDevice;
     };
 
     /**
@@ -79,6 +82,119 @@ namespace nap
         bool init(utility::ErrorState& errorState) override;
 
         ERealSenseStreamType mStreamType = ERealSenseStreamType::REALSENSE_STREAMTYPE_DEPTH; ///< Property: 'Stream' stream type to align to
+    private:
+        struct Impl;
+        std::unique_ptr<Impl> mImpl;
+    };
+
+
+    class NAPAPI RealSenseFrameSetCutDistanceFilter final : public RealSenseFrameSetFilter
+    {
+    RTTI_ENABLE(RealSenseFrameSetFilter)
+    public:
+        /**
+         * Constructor
+         */
+        RealSenseFrameSetCutDistanceFilter();
+
+        /**
+         * Destructor
+         */
+        virtual ~RealSenseFrameSetCutDistanceFilter();
+
+        /**
+         * Called from RealSenseDevice on RealSense process thread before frameset is passed onto FrameSetListener components
+         * @param frameset the frameset
+         * @return the filtered frameset
+         */
+        rs2::frameset process(const rs2::frameset& frameset) override;
+
+        /**
+         * Initialization
+         * @param errorState contains any errors
+         * @return true on success
+         */
+        bool init(utility::ErrorState& errorState) override;
+
+        glm::vec2 mCuttingRange = { 0.2f, 2.0f };    ///< Property: 'CuttingRange'
+    private:
+        struct Impl;
+        std::unique_ptr<Impl> mImpl;
+    };
+
+
+    class NAPAPI RealSenseFrameHolesFillingFilter final : public RealSenseFrameSetFilter
+    {
+    RTTI_ENABLE(RealSenseFrameSetFilter)
+    public:
+        enum NAPAPI EHoleFilling : int
+        {
+            FILL_FROM_LEFT = 0,
+            FARTHEST_FROM_AROUND = 1,
+            NEAREST_FROM_AROUND = 2
+        };
+        /**
+         * Constructor
+         */
+        RealSenseFrameHolesFillingFilter();
+
+        /**
+         * Destructor
+         */
+        virtual ~RealSenseFrameHolesFillingFilter();
+
+        /**
+         * Called from RealSenseDevice on RealSense process thread before frameset is passed onto FrameSetListener components
+         * @param frameset the frameset
+         * @return the filtered frameset
+         */
+        rs2::frameset process(const rs2::frameset& frameset) override;
+
+        /**
+         * Initialization
+         * @param errorState contains any errors
+         * @return true on success
+         */
+        bool init(utility::ErrorState& errorState) override;
+
+        EHoleFilling mHoleFilling = EHoleFilling::FARTHEST_FROM_AROUND;
+    private:
+        struct Impl;
+        std::unique_ptr<Impl> mImpl;
+    };
+
+
+    class NAPAPI RealSenseTemporalFilter final : public RealSenseFrameSetFilter
+    {
+    RTTI_ENABLE(RealSenseFrameSetFilter)
+    public:
+        /**
+         * Constructor
+         */
+        RealSenseTemporalFilter();
+
+        /**
+         * Destructor
+         */
+        virtual ~RealSenseTemporalFilter();
+
+        /**
+         * Called from RealSenseDevice on RealSense process thread before frameset is passed onto FrameSetListener components
+         * @param frameset the frameset
+         * @return the filtered frameset
+         */
+        rs2::frameset process(const rs2::frameset& frameset) override;
+
+        /**
+         * Initialization
+         * @param errorState contains any errors
+         * @return true on success
+         */
+        bool init(utility::ErrorState& errorState) override;
+
+        float mSmoothAlpha = 0.4f;
+        int mSmoothDelta = 20;
+        int mPersistencyIndex = 3;
     private:
         struct Impl;
         std::unique_ptr<Impl> mImpl;
