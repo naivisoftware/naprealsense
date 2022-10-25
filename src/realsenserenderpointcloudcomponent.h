@@ -4,7 +4,7 @@
 #include <rect.h>
 #include <renderablemeshcomponent.h>
 
-#include "realsenserenderframecomponent.h"
+#include "realsenserenderframescomponent.h"
 #include "realsenseframesetlistenercomponent.h"
 #include "pointcloudmesh.h"
 
@@ -37,8 +37,7 @@ namespace nap
         ERealSenseStreamType mCameraIntrinsicsStreamType = ERealSenseStreamType::REALSENSE_STREAMTYPE_DEPTH;
         ResourcePtr<RealSenseDevice> mDevice; ///< Property: 'Device' the device this component renders the point cloud from
         ComponentPtr<TransformComponent> mCameraTransform; ///< Property: 'CameraTransform' the camera transform
-        ComponentPtr<RealSenseRenderFrameComponent> mDepthRenderer; ///< Property: 'DepthRenderer'
-        ComponentPtr<RealSenseRenderFrameComponent> mColorRenderer; ///< Property: 'ColorRenderer'
+        ComponentPtr<RealSenseRenderFramesComponent> mFramesRenderer; ///< Property: 'FramesRenderer'
         float mPointSize = 1.0f; ///< Property: 'PointSize'
         float mMaxDistance = 5.0f; ///< Property: 'MaxDistance'
     };
@@ -83,8 +82,7 @@ namespace nap
     protected:
     private:
         ComponentInstancePtr<TransformComponent> mCameraTransform = { this, &RealSenseRenderPointCloudComponent::mCameraTransform };
-        ComponentInstancePtr<RealSenseRenderFrameComponent> mDepthRenderer = { this, &RealSenseRenderPointCloudComponent::mDepthRenderer };
-        ComponentInstancePtr<RealSenseRenderFrameComponent> mColorRenderer = { this, &RealSenseRenderPointCloudComponent::mColorRenderer };
+        ComponentInstancePtr<RealSenseRenderFramesComponent> mFramesRenderer = { this, &RealSenseRenderPointCloudComponent::mFramesRenderer };
         RealSenseDevice* mDevice;
         float mPointSize;
         float mMaxDistance;

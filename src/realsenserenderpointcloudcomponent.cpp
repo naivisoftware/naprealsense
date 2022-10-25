@@ -13,8 +13,7 @@ RTTI_BEGIN_CLASS(nap::RealSenseRenderPointCloudComponent)
         RTTI_PROPERTY("CameraTransform", &nap::RealSenseRenderPointCloudComponent::mCameraTransform, nap::rtti::EPropertyMetaData::Required)
         RTTI_PROPERTY("PointSize", &nap::RealSenseRenderPointCloudComponent::mPointSize, nap::rtti::EPropertyMetaData::Default)
         RTTI_PROPERTY("MaxDistance", &nap::RealSenseRenderPointCloudComponent::mMaxDistance, nap::rtti::EPropertyMetaData::Default)
-        RTTI_PROPERTY("DepthRenderer", &nap::RealSenseRenderPointCloudComponent::mDepthRenderer, nap::rtti::EPropertyMetaData::Required)
-        RTTI_PROPERTY("ColorRenderer", &nap::RealSenseRenderPointCloudComponent::mColorRenderer, nap::rtti::EPropertyMetaData::Required)
+        RTTI_PROPERTY("FramesRenderer", &nap::RealSenseRenderPointCloudComponent::mFramesRenderer, nap::rtti::EPropertyMetaData::Required)
         RTTI_PROPERTY("IntrinsicsType", &nap::RealSenseRenderPointCloudComponent::mCameraIntrinsicsStreamType, nap::rtti::EPropertyMetaData::Default)
 RTTI_END_CLASS
 
@@ -78,16 +77,17 @@ namespace nap
 
     void RealSenseRenderPointCloudComponentInstance::update(double deltaTime)
     {
-        mReady = mDepthRenderer->isRenderTextureInitialized() && mColorRenderer->isRenderTextureInitialized();
+        mReady = mFramesRenderer->isRenderTextureInitialized(ERealSenseStreamType::REALSENSE_STREAMTYPE_DEPTH) &&
+                mFramesRenderer->isRenderTextureInitialized(ERealSenseStreamType::REALSENSE_STREAMTYPE_COLOR);
         if(!mReady)
             return;
 
         auto& material_instance = getMaterialInstance();
         auto* depth_sampler = material_instance.getOrCreateSampler<Sampler2DInstance>("depth_texture");
-        depth_sampler->setTexture(mDepthRenderer->getRenderTexture());
+        depth_sampler->setTexture(mFramesRenderer->getRenderTexture(ERealSenseStreamType::REALSENSE_STREAMTYPE_DEPTH));
 
         auto* color_sampler = material_instance.getOrCreateSampler<Sampler2DInstance>("color_texture");
-        color_sampler->setTexture(mColorRenderer->getRenderTexture());
+        color_sampler->setTexture(mFramesRenderer->getRenderTexture(ERealSenseStreamType::REALSENSE_STREAMTYPE_COLOR));
 
         const auto& camera_intrinsics = mDevice->getIntrincicsMap();
         const auto& intrinsics = camera_intrinsics.find(mCameraIntrinsicsStreamType)->second;

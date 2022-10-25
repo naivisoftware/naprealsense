@@ -7,45 +7,52 @@ namespace nap
 {
     //////////////////////////////////////////////////////////////////////////
 
-    class RealSenseRenderFrameComponentInstance;
+    class RealSenseRenderFramesComponentInstance;
+
+    struct NAPAPI RealSenseRenderFrameDescription
+    {
+    RTTI_ENABLE()
+    public:
+        ERealSenseStreamType mStreamType = ERealSenseStreamType::REALSENSE_STREAMTYPE_COLOR;
+        RenderTexture2D::EFormat mFormat = RenderTexture2D::EFormat::RGBA8;
+    };
 
     /**
      * RealSenseRenderFrameComponent
      */
-    class NAPAPI RealSenseRenderFrameComponent : public RealSenseFrameSetListenerComponent
+    class NAPAPI RealSenseRenderFramesComponent : public RealSenseFrameSetListenerComponent
     {
-        friend class RealSenseRenderFrameComponentInstance;
+        friend class RealSenseRenderFramesComponentInstance;
 
     RTTI_ENABLE(RealSenseFrameSetListenerComponent)
-    DECLARE_COMPONENT(RealSenseRenderFrameComponent, RealSenseRenderFrameComponentInstance)
+    DECLARE_COMPONENT(RealSenseRenderFramesComponent, RealSenseRenderFramesComponentInstance)
     public:
         /**
          * Constructor
          */
-        RealSenseRenderFrameComponent();
+        RealSenseRenderFramesComponent();
 
         /**
          * Destructor
          */
-        virtual ~RealSenseRenderFrameComponent();
+        virtual ~RealSenseRenderFramesComponent();
 
         /**
          * Returns component instance, nullptr if not inited
          * @return component instance, nullptr if not inited
          */
-        RealSenseRenderFrameComponentInstance* getInstance();
+        RealSenseRenderFramesComponentInstance* getInstance();
 
         ComponentPtr<RealSenseFilterStackComponent> mFilterStack;
-        ERealSenseStreamType mStreamType = ERealSenseStreamType::REALSENSE_STREAMTYPE_COLOR;
-        RenderTexture2D::EFormat mFormat = RenderTexture2D::EFormat::RGBA8; ///< Property: 'Format' render texture format
+        std::vector<RealSenseRenderFrameDescription> mRenderDescriptions;
     private:
-        RealSenseRenderFrameComponentInstance* mInstance;
+        RealSenseRenderFramesComponentInstance* mInstance;
     };
 
     /**
      * RealSenseRenderFrameComponentInstance creates a RenderTexture2D and renders a frame into it
      */
-    class NAPAPI RealSenseRenderFrameComponentInstance : public RealSenseFrameSetListenerComponentInstance
+    class NAPAPI RealSenseRenderFramesComponentInstance : public RealSenseFrameSetListenerComponentInstance
     {
     RTTI_ENABLE(RealSenseFrameSetListenerComponentInstance)
     public:
@@ -54,24 +61,24 @@ namespace nap
          * @param entity
          * @param resource
          */
-        RealSenseRenderFrameComponentInstance(EntityInstance& entity, Component& resource);
+        RealSenseRenderFramesComponentInstance(EntityInstance& entity, Component& resource);
 
         /**
          * Destructor
          */
-        virtual ~RealSenseRenderFrameComponentInstance();
+        virtual ~RealSenseRenderFramesComponentInstance();
 
         /**
          * Returns created render texture, if not initialized will return a render texture of 1x1
          * @return created render texture
          */
-        RenderTexture2D& getRenderTexture() const{ return *mRenderTexture; }
+        RenderTexture2D& getRenderTexture(ERealSenseStreamType streamType) const;
 
         /**
          * Returns whether or not we have a render texture initialized
          * @return true when a render texture is initialized
          */
-        bool isRenderTextureInitialized() const{ return mTextureInitialized; }
+        bool isRenderTextureInitialized(ERealSenseStreamType streamType) const;
 
         /**
          * Called from RealSense processing thread
@@ -98,13 +105,13 @@ namespace nap
          */
         void update(double deltaTime) override;
     private:
-        ComponentInstancePtr<RealSenseFilterStackComponent> mFilterStack = { this, &RealSenseRenderFrameComponent::mFilterStack };
+        ComponentInstancePtr<RealSenseFilterStackComponent> mFilterStack = { this, &RealSenseRenderFramesComponent::mFilterStack };
 
-        std::unique_ptr<RenderTexture2D> mRenderTexture;
-        RealSenseRenderFrameComponent* mResource;
-        RenderTexture2D::EFormat mFormat;
-        ERealSenseStreamType mStreamType;
-        bool mTextureInitialized = false;
+        std::vector<RealSenseRenderFrameDescription> mRenderDescriptions;
+        std::map<ERealSenseStreamType, std::unique_ptr<RenderTexture2D>> mRenderTextures;
+        std::map<ERealSenseStreamType, bool> mInitializationMap;
+
+        RealSenseRenderFramesComponent* mResource;
 
         struct Impl;
         std::unique_ptr<Impl> mImplementation;
