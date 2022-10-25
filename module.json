@@ -1,9 +1,12 @@
 {
-    "Type": "nap::ModuleInfo", 
-    "mID": "ModuleInfo", 
+    "Type": "nap::ModuleInfo",
+    "mID": "ModuleInfo",
     "RequiredModules": [
         "mod_napmath",
         "mod_naprender"
-    ], 
-    "WindowsDllSearchPaths": []
+    ],
+    "WindowsDllSearchPaths": [
+		"{ROOT}/../thirdparty/realsense/msvc/x86_64/lib",
+		"{ROOT}/thirdparty/realsense/msvc/x86_64/lib"
+	]
 }
