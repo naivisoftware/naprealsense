@@ -45,12 +45,6 @@ namespace nap
     RealSenseFrameSetFilter::~RealSenseFrameSetFilter(){}
 
 
-    void RealSenseFrameSetFilter::setDevice(RealSenseDevice* device)
-    {
-        mDevice = device;
-    }
-
-
     //////////////////////////////////////////////////////////////////////////
     // RealSenseFrameSetAlignFilter::Impl
     //////////////////////////////////////////////////////////////////////////
@@ -85,9 +79,10 @@ namespace nap
     }
 
 
-    rs2::frameset RealSenseFrameSetAlignFilter::process(const rs2::frameset& frameset)
+    rs2::frameset RealSenseFrameSetAlignFilter::process(RealSenseDevice* device, const rs2::frameset& frameset)
     {
-        return mImpl->mAlign.filter::process(frameset);
+        auto processed = mImpl->mAlign.process(frameset);
+        return processed;
     }
 
 
@@ -122,10 +117,10 @@ namespace nap
     }
 
 
-    rs2::frameset RealSenseFrameSetCutDistanceFilter::process(const rs2::frameset& frameset)
+    rs2::frameset RealSenseFrameSetCutDistanceFilter::process(RealSenseDevice* device, const rs2::frameset& frameset)
     {
         auto frame = frameset.first(RS2_STREAM_DEPTH).as<rs2::depth_frame>();
-        remove_background(frame, frame, mDevice->getDepthScale(), mCuttingRange);
+        remove_background(frame, frame, device->getDepthScale(), mCuttingRange);
         return frameset;
     }
 
@@ -164,7 +159,7 @@ namespace nap
     }
 
 
-    rs2::frameset RealSenseFrameHolesFillingFilter::process(const rs2::frameset& frameset)
+    rs2::frameset RealSenseFrameHolesFillingFilter::process(RealSenseDevice* device, const rs2::frameset& frameset)
     {
         auto frame = frameset.first(RS2_STREAM_DEPTH).as<rs2::depth_frame>();
         frame.apply_filter(mImpl->mFilter);
@@ -208,7 +203,7 @@ namespace nap
     }
 
 
-    rs2::frameset RealSenseTemporalFilter::process(const rs2::frameset& frameset)
+    rs2::frameset RealSenseTemporalFilter::process(RealSenseDevice* device, const rs2::frameset& frameset)
     {
         auto frame = frameset.first(RS2_STREAM_DEPTH).as<rs2::depth_frame>();
         frame.apply_filter(mImpl->mFilter);

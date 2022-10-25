@@ -16,7 +16,6 @@ RTTI_BEGIN_CLASS_NO_DEFAULT_CONSTRUCTOR(nap::RealSenseDevice)
     RTTI_PROPERTY("Serial", &nap::RealSenseDevice::mSerial, nap::rtti::EPropertyMetaData::Default)
     RTTI_PROPERTY("MaxFrameSize", &nap::RealSenseDevice::mMaxFrameSize, nap::rtti::EPropertyMetaData::Default)
     RTTI_PROPERTY("Streams", &nap::RealSenseDevice::mStreams, nap::rtti::EPropertyMetaData::Embedded)
-    RTTI_PROPERTY("FrameSetFilters", &nap::RealSenseDevice::mFrameSetFilter, nap::rtti::EPropertyMetaData::Embedded)
     RTTI_PROPERTY("AllowFailure", &nap::RealSenseDevice::mAllowFailure, nap::rtti::EPropertyMetaData::Default)
 RTTI_END_CLASS
 
@@ -175,11 +174,6 @@ namespace nap
                 return mAllowFailure;
             }
 
-            for(auto& frameset_filter : mFrameSetFilter)
-            {
-                frameset_filter->setDevice(this);
-            }
-
             mRun.store(true);
             mCaptureTask = std::async(std::launch::async, std::bind(&RealSenseDevice::process, this));
             mIsConnected = true;
@@ -266,15 +260,10 @@ namespace nap
                 rs2::frameset data;
                 if(mImplementation->mPipe.poll_for_frames(&data))
                 {
-                    for(auto& filter : mFrameSetFilter)
-                    {
-                        data = filter->process(data);
-                    }
-
                     std::lock_guard l(mFrameSetListenerMutex);
                     for(auto* frameset_listener : mFrameSetListeners)
                     {
-                        frameset_listener->trigger(data);
+                        frameset_listener->trigger(this, data);
                     }
                 }
             }

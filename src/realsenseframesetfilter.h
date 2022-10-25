@@ -43,11 +43,8 @@ namespace nap
          * @param frameset the frameset
          * @return the filtered frameset
          */
-        virtual rs2::frameset process(const rs2::frameset& frameset) = 0;
-
-        void setDevice(RealSenseDevice* device);
+        virtual rs2::frameset process(RealSenseDevice* device, const rs2::frameset& frameset) = 0;
     protected:
-        RealSenseDevice* mDevice;
     };
 
     /**
@@ -72,7 +69,7 @@ namespace nap
          * @param frameset the frameset
          * @return the filtered frameset
          */
-        rs2::frameset process(const rs2::frameset& frameset) override;
+        rs2::frameset process(RealSenseDevice* device, const rs2::frameset& frameset) override;
 
         /**
          * Initialization
@@ -107,7 +104,7 @@ namespace nap
          * @param frameset the frameset
          * @return the filtered frameset
          */
-        rs2::frameset process(const rs2::frameset& frameset) override;
+        rs2::frameset process(RealSenseDevice* device, const rs2::frameset& frameset) override;
 
         /**
          * Initialization
@@ -148,7 +145,7 @@ namespace nap
          * @param frameset the frameset
          * @return the filtered frameset
          */
-        rs2::frameset process(const rs2::frameset& frameset) override;
+        rs2::frameset process(RealSenseDevice* device, const rs2::frameset& frameset) override;
 
         /**
          * Initialization
@@ -183,7 +180,7 @@ namespace nap
          * @param frameset the frameset
          * @return the filtered frameset
          */
-        rs2::frameset process(const rs2::frameset& frameset) override;
+        rs2::frameset process(RealSenseDevice* device, const rs2::frameset& frameset) override;
 
         /**
          * Initialization

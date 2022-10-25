@@ -4,7 +4,6 @@
 #include <rs.hpp>
 
 RTTI_BEGIN_CLASS(nap::RealSenseFrameSetListenerComponent)
-    RTTI_PROPERTY("RealSenseDevice", &nap::RealSenseFrameSetListenerComponent::mDevice, nap::rtti::EPropertyMetaData::Required)
 RTTI_END_CLASS
 
 RTTI_BEGIN_CLASS_NO_DEFAULT_CONSTRUCTOR(nap::RealSenseFrameSetListenerComponentInstance)
@@ -38,9 +37,6 @@ namespace nap
     bool RealSenseFrameSetListenerComponentInstance::init(utility::ErrorState &errorState)
     {
         auto *resource = getComponent<RealSenseFrameSetListenerComponent>();
-        mDevice = resource->mDevice.get();
-        mDevice->addFrameSetListener(this);
-        mStreamType = resource->mStreamType;
 
         return onInit(errorState);
     }
@@ -57,8 +53,6 @@ namespace nap
 
     void RealSenseFrameSetListenerComponentInstance::onDestroy()
     {
-        mDevice->removeFrameSetListener(this);
-
         destroy();
     }
 }

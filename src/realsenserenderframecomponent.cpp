@@ -4,6 +4,7 @@
 #include <rs.hpp>
 
 RTTI_BEGIN_CLASS(nap::RealSenseRenderFrameComponent)
+    RTTI_PROPERTY("FilterStack", &nap::RealSenseRenderFrameComponent::mFilterStack, nap::rtti::EPropertyMetaData::Default)
     RTTI_PROPERTY("Format", &nap::RealSenseRenderFrameComponent::mFormat, nap::rtti::EPropertyMetaData::Default)
     RTTI_PROPERTY("StreamType", &nap::RealSenseRenderFrameComponent::mStreamType, nap::rtti::EPropertyMetaData::Default)
 RTTI_END_CLASS
@@ -79,13 +80,15 @@ namespace nap
         mRenderTexture->mColorSpace = EColorSpace::Linear;
         mRenderTexture->mFormat = mFormat;
 
+        mFilterStack->addFrameSetListener(this);
+
         return true;
     }
 
 
     void RealSenseRenderFrameComponentInstance::destroy()
     {
-
+        mFilterStack->removeFrameSetListener(this);
     }
 
 
@@ -123,7 +126,7 @@ namespace nap
     }
 
 
-    void RealSenseRenderFrameComponentInstance::trigger(const rs2::frameset &frameset)
+    void RealSenseRenderFrameComponentInstance::trigger(RealSenseDevice* device, const rs2::frameset &frameset)
     {
         mImplementation->mFrameQueue.enqueue(frameset.first(static_cast<rs2_stream>(mStreamType)).as<rs2::video_frame>());
     }

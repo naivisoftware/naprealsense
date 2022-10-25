@@ -1,15 +1,92 @@
-//
-// Created by codeflow on 24-10-22.
-//
+#pragma once
 
-#ifndef NAP_REALSENSEFILTERSTACKCOMPONENT_H
-#define NAP_REALSENSEFILTERSTACKCOMPONENT_H
+#include "realsenseframesetlistenercomponent.h"
 
-
-class realsensefilterstackcomponent
+namespace nap
 {
+    //////////////////////////////////////////////////////////////////////////
+    class RealSenseFrameSetFilter;
+    class RealSenseFilterStackComponentInstance;
+    class RealSenseDevice;
 
-};
+    /**
+     * RealSenseRenderFrameComponent
+     */
+    class NAPAPI RealSenseFilterStackComponent : public RealSenseFrameSetListenerComponent
+    {
+        friend class RealSenseFilterStackComponentInstance;
 
+    RTTI_ENABLE(RealSenseFrameSetListenerComponent)
+    DECLARE_COMPONENT(RealSenseFilterStackComponent, RealSenseFilterStackComponentInstance)
+    public:
+        /**
+         * Constructor
+         */
+        RealSenseFilterStackComponent();
 
-#endif //NAP_REALSENSEFILTERSTACKCOMPONENT_H
+        /**
+         * Destructor
+         */
+        virtual ~RealSenseFilterStackComponent();
+
+        /**
+         * Returns component instance, nullptr if not inited
+         * @return component instance, nullptr if not inited
+         */
+        RealSenseFilterStackComponentInstance* getInstance();
+
+        std::vector<ResourcePtr<RealSenseFrameSetFilter>> mFilters;
+        ResourcePtr<RealSenseDevice> mDevice;
+    private:
+        RealSenseFilterStackComponentInstance* mInstance;
+    };
+
+    /**
+     * RealSenseRenderFrameComponentInstance creates a RenderTexture2D and renders a frame into it
+     */
+    class NAPAPI RealSenseFilterStackComponentInstance : public RealSenseFrameSetListenerComponentInstance
+    {
+    RTTI_ENABLE(RealSenseFrameSetListenerComponentInstance)
+    public:
+        /**
+         * Constructor
+         * @param entity
+         * @param resource
+         */
+        RealSenseFilterStackComponentInstance(EntityInstance& entity, Component& resource);
+
+        /**
+         * Destructor
+         */
+        virtual ~RealSenseFilterStackComponentInstance();
+
+        void addFrameSetListener(RealSenseFrameSetListenerComponentInstance* framesetListener);
+
+        void removeFrameSetListener(RealSenseFrameSetListenerComponentInstance* framesetListener);
+
+        /**
+         * Called from RealSense processing thread
+         * @param frame
+         */
+        virtual void trigger(RealSenseDevice* device, const rs2::frameset& frameset) override;
+    protected:
+        /**
+         * internal initialization method called from init
+         * Creates initial 1x1 render texture
+         * @param errorState contains any errors
+         * @return true on success
+         */
+        bool onInit(utility::ErrorState& errorState) override;
+
+        /**
+         * Called before deconstruction
+         */
+        void destroy() override;
+    private:
+        std::vector<RealSenseFrameSetListenerComponentInstance*> mFrameSetListeners;
+        RealSenseFilterStackComponent* mResource;
+        std::vector<RealSenseFrameSetFilter*> mFilters;
+        std::mutex mMutex;
+        RealSenseDevice* mDevice;
+    };
+}

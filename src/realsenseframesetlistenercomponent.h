@@ -47,9 +47,6 @@ namespace nap
          * Destructor
          */
         virtual ~RealSenseFrameSetListenerComponent();
-
-        ResourcePtr<RealSenseDevice> mDevice; ///< Property: 'Device' the device this component receives framesets from
-        ERealSenseStreamType mStreamType = ERealSenseStreamType::REALSENSE_STREAMTYPE_COLOR; ///< Property: 'Stream' the stream type we're interested in
     };
 
     /**
@@ -84,6 +81,11 @@ namespace nap
          * Called before deconstruction
          */
         virtual void onDestroy() override final;
+
+        /**
+         * Called from RealSense device upon receiving a new frameset, called from RealSense processing thread
+         */
+        virtual void trigger(RealSenseDevice* device, const rs2::frameset& frameset) = 0;
     protected:
         /**
          * internal initialization method called from init
@@ -96,13 +98,5 @@ namespace nap
          * Called before deconstruction
          */
         virtual void destroy();
-
-        /**
-         * Called from RealSense device upon receiving a new frameset, called from RealSense processing thread
-         */
-        virtual void trigger(const rs2::frameset& frameset) = 0;
-
-        RealSenseDevice* mDevice;
-        ERealSenseStreamType mStreamType;
     };
 }

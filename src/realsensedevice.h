@@ -119,7 +119,6 @@ namespace nap
         std::string mSerial; ///< Property: 'Serial' serial of device to use, keep empty to get first device available
         int mMaxFrameSize = 5; ///< Property: 'MaxFrameSize' maximum size of frame queue
         std::vector<ResourcePtr<RealSenseStreamDescription>> mStreams; ///< Property: 'Streams' settings for desired streams
-        std::vector<ResourcePtr<RealSenseFrameSetFilter>> mFrameSetFilter; ///< Property: 'FrameSetFilters' filter that need to be applied to new framesets acquired by the device
         bool mAllowFailure = false; ///< Property: 'AllowFailure' return init success upon init failure
     private:
         void process();

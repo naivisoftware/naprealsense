@@ -1,6 +1,7 @@
 #pragma once
 
 #include "realsenseframesetlistenercomponent.h"
+#include "realsensefilterstackcomponent.h"
 
 namespace nap
 {
@@ -34,6 +35,7 @@ namespace nap
          */
         RealSenseRenderFrameComponentInstance* getInstance();
 
+        ComponentPtr<RealSenseFilterStackComponent> mFilterStack;
         ERealSenseStreamType mStreamType = ERealSenseStreamType::REALSENSE_STREAMTYPE_COLOR;
         RenderTexture2D::EFormat mFormat = RenderTexture2D::EFormat::RGBA8; ///< Property: 'Format' render texture format
     private:
@@ -71,6 +73,11 @@ namespace nap
          */
         bool isRenderTextureInitialized() const{ return mTextureInitialized; }
 
+        /**
+         * Called from RealSense processing thread
+         * @param frame
+         */
+        virtual void trigger(RealSenseDevice* device, const rs2::frameset& frameset) override;
     protected:
         /**
          * internal initialization method called from init
@@ -90,13 +97,9 @@ namespace nap
          * @param deltaTime
          */
         void update(double deltaTime) override;
-
-        /**
-         * Called from RealSense processing thread
-         * @param frame
-         */
-        virtual void trigger(const rs2::frameset& frameset) override;
     private:
+        ComponentInstancePtr<RealSenseFilterStackComponent> mFilterStack = { this, &RealSenseRenderFrameComponent::mFilterStack };
+
         std::unique_ptr<RenderTexture2D> mRenderTexture;
         RealSenseRenderFrameComponent* mResource;
         RenderTexture2D::EFormat mFormat;
