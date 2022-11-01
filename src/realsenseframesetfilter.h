@@ -113,10 +113,15 @@ namespace nap
          */
         bool init(utility::ErrorState& errorState) override;
 
+        /**
+         * Changes cutting range
+         * @param range
+         */
+        void changeCuttingRange(const glm::vec2& range);
+
         glm::vec2 mCuttingRange = { 0.2f, 2.0f };    ///< Property: 'CuttingRange'
     private:
-        struct Impl;
-        std::unique_ptr<Impl> mImpl;
+        std::mutex mMutex;
     };
 
 

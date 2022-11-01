@@ -2,6 +2,7 @@
 #include "realsensedevice.h"
 
 #include <rs.hpp>
+#include <concurrentqueue.h>
 
 RTTI_BEGIN_CLASS_NO_DEFAULT_CONSTRUCTOR(nap::RealSenseFrameSetFilter)
 RTTI_END_CLASS
@@ -87,18 +88,6 @@ namespace nap
 
 
     //////////////////////////////////////////////////////////////////////////
-    // RealSenseFrameSetCutDistanceFilter::Impl
-    //////////////////////////////////////////////////////////////////////////
-
-
-    struct RealSenseFrameSetCutDistanceFilter::Impl
-    {
-    public:
-        Impl(){}
-    };
-
-
-    //////////////////////////////////////////////////////////////////////////
     // RealSenseFrameSetAlignFilter
     //////////////////////////////////////////////////////////////////////////
 
@@ -111,17 +100,28 @@ namespace nap
 
     bool RealSenseFrameSetCutDistanceFilter::init(utility::ErrorState &errorState)
     {
-        mImpl = std::make_unique<Impl>();
-
         return true;
     }
 
 
     rs2::frameset RealSenseFrameSetCutDistanceFilter::process(RealSenseDevice* device, const rs2::frameset& frameset)
     {
+        glm::vec2 range;
+        {
+            std::lock_guard<std::mutex> l(mMutex);
+            range = mCuttingRange;
+        }
+
         auto frame = frameset.first(RS2_STREAM_DEPTH).as<rs2::depth_frame>();
-        remove_background(frame, frame, device->getDepthScale(), mCuttingRange);
+        remove_background(frame, frame, device->getDepthScale(), range);
         return frameset;
+    }
+
+
+    void RealSenseFrameSetCutDistanceFilter::changeCuttingRange(const glm::vec2& range)
+    {
+        std::lock_guard<std::mutex> l(mMutex);
+        mCuttingRange = range;
     }
 
 
