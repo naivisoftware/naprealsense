@@ -125,6 +125,46 @@ namespace nap
     };
 
 
+    class NAPAPI RealSenseFrameCropBordersFilter final : public RealSenseFrameSetFilter
+    {
+    RTTI_ENABLE(RealSenseFrameSetFilter)
+    public:
+        /**
+         * Constructor
+         */
+        RealSenseFrameCropBordersFilter();
+
+        /**
+         * Destructor
+         */
+        virtual ~RealSenseFrameCropBordersFilter();
+
+        /**
+         * Called from RealSenseDevice on RealSense process thread before frameset is passed onto FrameSetListener components
+         * @param frameset the frameset
+         * @return the filtered frameset
+         */
+        rs2::frameset process(RealSenseDevice* device, const rs2::frameset& frameset) override;
+
+        /**
+         * Initialization
+         * @param errorState contains any errors
+         * @return true on success
+         */
+        bool init(utility::ErrorState& errorState) override;
+
+        /**
+         * Changes crop
+         * @param range
+         */
+        void changeCrop(const glm::vec4& crop);
+
+        glm::vec4 mBorderCrop = { 0.0f, 0.0f, 0.0f, 0.0f };    ///< Property: 'BorderCrop'
+    private:
+        std::mutex mMutex;
+    };
+
+
     class NAPAPI RealSenseFrameHolesFillingFilter final : public RealSenseFrameSetFilter
     {
     RTTI_ENABLE(RealSenseFrameSetFilter)
