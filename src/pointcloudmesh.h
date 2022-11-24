@@ -61,7 +61,7 @@ namespace nap
         EMemoryUsage	mUsage			= EMemoryUsage::Static; ///< Property: 'Usage' memory usage
         ECullMode		mCullMode		= ECullMode::None; ///< Property: 'CullMode' cull mode
 
-
+        // constructs the mesh
         void constructPointCloud(nap::MeshInstance& mesh);
     private:
         EPolygonMode	mPolygonMode	= EPolygonMode::Point;

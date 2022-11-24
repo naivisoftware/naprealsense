@@ -4,8 +4,8 @@
 #include <rs.hpp>
 
 RTTI_BEGIN_STRUCT(nap::RealSenseRenderFrameDescription)
-        RTTI_PROPERTY("StreamType", &nap::RealSenseRenderFrameDescription::mStreamType, nap::rtti::EPropertyMetaData::Default)
-        RTTI_PROPERTY("Format", &nap::RealSenseRenderFrameDescription::mFormat, nap::rtti::EPropertyMetaData::Default)
+    RTTI_PROPERTY("StreamType", &nap::RealSenseRenderFrameDescription::mStreamType, nap::rtti::EPropertyMetaData::Default)
+    RTTI_PROPERTY("Format", &nap::RealSenseRenderFrameDescription::mFormat, nap::rtti::EPropertyMetaData::Default)
 RTTI_END_STRUCT
 
 RTTI_BEGIN_CLASS(nap::RealSenseRenderFramesComponent)
@@ -39,6 +39,12 @@ namespace nap
     }
 
 
+    void RealSenseRenderFramesComponent::getDependentComponents(std::vector<rtti::TypeInfo> &components) const
+    {
+        components.emplace_back(RTTI_OF(RealSenseFilterStackComponent));
+    }
+
+
     //////////////////////////////////////////////////////////////////////////
     // RealSenseRenderFramesComponentInstance::Impl
     //////////////////////////////////////////////////////////////////////////
@@ -67,7 +73,7 @@ namespace nap
     RealSenseRenderFramesComponentInstance::~RealSenseRenderFramesComponentInstance(){}
 
 
-    bool RealSenseRenderFramesComponentInstance::onInit(utility::ErrorState &errorState)
+    bool RealSenseRenderFramesComponentInstance::init(utility::ErrorState &errorState)
     {
         mImplementation = std::make_unique<Impl>();
 
@@ -98,7 +104,7 @@ namespace nap
     }
 
 
-    void RealSenseRenderFramesComponentInstance::destroy()
+    void RealSenseRenderFramesComponentInstance::onDestroy()
     {
         mFilterStack->removeFrameSetListener(this);
     }

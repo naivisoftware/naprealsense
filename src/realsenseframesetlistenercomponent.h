@@ -25,13 +25,14 @@ namespace nap
 {
     //////////////////////////////////////////////////////////////////////////
 
+    // forward declares
     class RealSenseDevice;
     class RealSenseStreamDescription;
     class RealSenseFrameSetListenerComponentInstance;
-    class RealSenseFrameFilter;
 
     /**
-     * RealSenseFrameSetListenerComponent component
+     * RealSenseFrameSetListenerComponent implements a trigger function with a frameset obtained from a RealSense camera
+     * on the RealSense device thread
      */
     class NAPAPI RealSenseFrameSetListenerComponent : public Component
     {
@@ -71,32 +72,8 @@ namespace nap
         virtual ~RealSenseFrameSetListenerComponentInstance();
 
         /**
-         * Initialization
-         * @param errorState contains any errors
-         * @return true on success
-         */
-        virtual bool init(utility::ErrorState& errorState) override final;
-
-        /**
-         * Called before deconstruction
-         */
-        virtual void onDestroy() override final;
-
-        /**
          * Called from RealSense device upon receiving a new frameset, called from RealSense processing thread
          */
         virtual void trigger(RealSenseDevice* device, const rs2::frameset& frameset) = 0;
-    protected:
-        /**
-         * internal initialization method called from init
-         * @param errorState contains any errors
-         * @return true on success
-         */
-        virtual bool onInit(utility::ErrorState& errorState);
-
-        /**
-         * Called before deconstruction
-         */
-        virtual void destroy();
     };
 }

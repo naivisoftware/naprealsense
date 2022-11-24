@@ -12,12 +12,14 @@ namespace nap
 {
     //////////////////////////////////////////////////////////////////////////
 
+    // forward declares
     class RealSenseDevice;
     class RealSenseRenderPointCloudComponentInstance;
     class RenderService;
 
     /**
-     * RealSenseRenderPointCloudComponent
+     * The RealSenseRenderPointCloudComponent takes the video frame and depth frame from a RealSenseRenderFramesComponent
+     * and displaces the points in the mesh using a displacement shader
      */
     class NAPAPI RealSenseRenderPointCloudComponent : public RenderableMeshComponent
     {
@@ -34,12 +36,17 @@ namespace nap
          */
         virtual ~RealSenseRenderPointCloudComponent();
 
-        ERealSenseStreamType mCameraIntrinsicsStreamType = ERealSenseStreamType::REALSENSE_STREAMTYPE_DEPTH;
+        /**
+         * Populates a list of components this component depends on.
+         * Depends on RealSenseRenderFramesComponent
+         * @param components list of component types this resource depends on.
+         */
+        void getDependentComponents(std::vector<rtti::TypeInfo> &components) const override;
+
+        ERealSenseStreamType mCameraIntrinsicsStreamType = ERealSenseStreamType::REALSENSE_STREAMTYPE_DEPTH; ///< Property: 'IntrinsicsType' the camera intrinsics to use in vertex displacement shader
         ResourcePtr<RealSenseDevice> mDevice; ///< Property: 'Device' the device this component renders the point cloud from
-        ComponentPtr<TransformComponent> mCameraTransform; ///< Property: 'CameraTransform' the camera transform
-        ComponentPtr<RealSenseRenderFramesComponent> mFramesRenderer; ///< Property: 'FramesRenderer'
-        float mPointSize = 1.0f; ///< Property: 'PointSize'
-        float mMaxDistance = 5.0f; ///< Property: 'MaxDistance'
+        ComponentPtr<RealSenseRenderFramesComponent> mFramesRenderer; ///< Property: 'FramesRenderer' the frames renderer
+        float mPointSize = 1.0f; ///< Property: 'PointSize' point cloud point size
     };
 
     class NAPAPI RealSenseRenderPointCloudComponentInstance : public RenderableMeshComponentInstance
@@ -66,26 +73,24 @@ namespace nap
         bool init(utility::ErrorState& errorState);
 
         /**
-         * Update this component
+         * Update this component, sets shader uniforms
          * @param deltaTime the time in between cooks in seconds
          */
         virtual void update(double deltaTime);
 
         /**
-         *
-         * @param renderTarget
-         * @param commandBuffer
-         * @param viewMatrix
-         * @param projectionMatrix
-         */
+        * Called by the render service.
+        * Renders pointcloud
+        * @param renderTarget currently bound render target
+        * @param commandBuffer active command buffer
+        * @param viewMatrix the camera world space location
+        * @param projectionMatrix the camera projection matrix
+        */
         void onDraw(nap::IRenderTarget &renderTarget, VkCommandBuffer commandBuffer, const glm::mat4 &viewMatrix, const glm::mat4 &projectionMatrix) override;
-    protected:
     private:
-        ComponentInstancePtr<TransformComponent> mCameraTransform = { this, &RealSenseRenderPointCloudComponent::mCameraTransform };
         ComponentInstancePtr<RealSenseRenderFramesComponent> mFramesRenderer = { this, &RealSenseRenderPointCloudComponent::mFramesRenderer };
         RealSenseDevice* mDevice;
         float mPointSize;
-        float mMaxDistance;
         bool mReady = false;
         ERealSenseStreamType mCameraIntrinsicsStreamType;
     };

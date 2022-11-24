@@ -17,6 +17,7 @@ RTTI_BEGIN_CLASS(nap::RealSenseFrameSetCutDistanceFilter)
 RTTI_END_CLASS
 
 RTTI_BEGIN_CLASS(nap::RealSenseFrameCropBordersFilter)
+    RTTI_PROPERTY("StreamType", &nap::RealSenseFrameCropBordersFilter::mStreamType, nap::rtti::EPropertyMetaData::Default)
     RTTI_PROPERTY("BorderCrop", &nap::RealSenseFrameCropBordersFilter::mBorderCrop, nap::rtti::EPropertyMetaData::Default)
 RTTI_END_CLASS
 
@@ -31,9 +32,9 @@ RTTI_BEGIN_CLASS(nap::RealSenseFrameHolesFillingFilter)
 RTTI_END_CLASS
 
 RTTI_BEGIN_CLASS(nap::RealSenseTemporalFilter)
-        RTTI_PROPERTY("SmoothAlpha", &nap::RealSenseTemporalFilter::mSmoothAlpha, nap::rtti::EPropertyMetaData::Default)
-        RTTI_PROPERTY("SmoothDelta", &nap::RealSenseTemporalFilter::mSmoothDelta, nap::rtti::EPropertyMetaData::Default)
-        RTTI_PROPERTY("PersintencyIndex", &nap::RealSenseTemporalFilter::mPersistencyIndex, nap::rtti::EPropertyMetaData::Default)
+    RTTI_PROPERTY("SmoothAlpha", &nap::RealSenseTemporalFilter::mSmoothAlpha, nap::rtti::EPropertyMetaData::Default)
+    RTTI_PROPERTY("SmoothDelta", &nap::RealSenseTemporalFilter::mSmoothDelta, nap::rtti::EPropertyMetaData::Default)
+    RTTI_PROPERTY("PersistenceIndex", &nap::RealSenseTemporalFilter::mPersistenceIndex, nap::rtti::EPropertyMetaData::Default)
 RTTI_END_CLASS
 
 namespace nap
@@ -153,8 +154,8 @@ namespace nap
             crop = mBorderCrop;
         }
 
-        auto frame = frameset.first(RS2_STREAM_DEPTH).as<rs2::depth_frame>();
-        realsense::crop(frame, frame, crop);
+        auto frame = frameset.first(static_cast<rs2_stream>(mStreamType)).as<rs2::video_frame>();
+        realsense::crop(frame, crop);
         return frameset;
     }
 
@@ -238,7 +239,7 @@ namespace nap
         mImpl = std::make_unique<Impl>();
         mImpl->mFilter.set_option(RS2_OPTION_FILTER_SMOOTH_ALPHA, mSmoothAlpha);
         mImpl->mFilter.set_option(RS2_OPTION_FILTER_SMOOTH_DELTA, mSmoothDelta);
-        mImpl->mFilter.set_option(RS2_OPTION_HOLES_FILL, mPersistencyIndex);
+        mImpl->mFilter.set_option(RS2_OPTION_HOLES_FILL, mPersistenceIndex);
 
         return true;
     }

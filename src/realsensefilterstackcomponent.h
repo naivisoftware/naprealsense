@@ -71,17 +71,17 @@ namespace nap
         virtual void trigger(RealSenseDevice* device, const rs2::frameset& frameset) override;
     protected:
         /**
-         * internal initialization method called from init
+         * initialization method
          * Creates initial 1x1 render texture
          * @param errorState contains any errors
          * @return true on success
          */
-        bool onInit(utility::ErrorState& errorState) override;
+        bool init(utility::ErrorState& errorState) final;
 
         /**
          * Called before deconstruction
          */
-        void destroy() override;
+        void onDestroy() final;
     private:
         std::vector<RealSenseFrameSetListenerComponentInstance*> mFrameSetListeners;
         RealSenseFilterStackComponent* mResource;

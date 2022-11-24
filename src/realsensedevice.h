@@ -113,6 +113,10 @@ namespace nap
          */
         const RealSenseCameraInfo& getCameraInfo() const{ return mCameraInfo; }
 
+        /**
+         * Returns true if device is connected
+         * @return true if device is connected
+         */
         bool getIsConnected() const{ return mIsConnected; }
 
         // properties
@@ -121,6 +125,7 @@ namespace nap
         std::vector<ResourcePtr<RealSenseStreamDescription>> mStreams; ///< Property: 'Streams' settings for desired streams
         bool mAllowFailure = false; ///< Property: 'AllowFailure' return init success upon init failure
     private:
+        // the threaded process function
         void process();
 
         std::future<void>		mCaptureTask;

@@ -61,7 +61,7 @@ namespace nap
                 nap::Logger::info("    Serial number: %s", device.get_info(RS2_CAMERA_INFO_SERIAL_NUMBER));
                 nap::Logger::info("    Firmware version: %s", device.get_info(RS2_CAMERA_INFO_FIRMWARE_VERSION));
 
-                mConnectedSerialNumbers.emplace_back(std::string(device.get_info(RS2_CAMERA_INFO_SERIAL_NUMBER)));
+                mFoundSerials.emplace_back(std::string(device.get_info(RS2_CAMERA_INFO_SERIAL_NUMBER)));
             }
         }catch(const rs2::error& e)
         {
@@ -92,43 +92,34 @@ namespace nap
 
     bool RealSenseService::registerDevice(nap::RealSenseDevice *device, utility::ErrorState& errorState)
     {
-        auto it = std::find(mDevices.begin(), mDevices.end(), device);
+        auto it = mDevices.find(device->mSerial);
         if(it != mDevices.end())
         {
             errorState.fail("Device already registered");
             return false;
         }
-        for(auto* other : mDevices)
-        {
-            if(!other->mSerial.empty() && !device->mSerial.empty())
-            {
-                if(other->mSerial==device->mSerial)
-                {
-                    errorState.fail(utility::stringFormat("Device with serial %s already registered", device->mSerial.c_str()));
-                    return false;
-                }
-            }
-        }
 
-        mDevices.emplace_back(device);
+        mDevices.emplace(device->mSerial, device);
 
         return true;
     }
 
 
+    const std::vector<std::string>& RealSenseService::getFoundSerials() const
+    {
+        return mFoundSerials;
+    }
+
+
     bool RealSenseService::hasSerialNumber(const std::string& serialNumber) const
     {
-        auto it = std::find_if(mConnectedSerialNumbers.begin(), mConnectedSerialNumbers.end(), [this, serialNumber](const std::string& other)
-        {
-            return other == serialNumber;
-        });
-        return it != mConnectedSerialNumbers.end();
+        return mDevices.find(serialNumber) != mDevices.end();
     }
 
 
     void RealSenseService::removeDevice(nap::RealSenseDevice *device)
     {
-        auto it = std::find(mDevices.begin(), mDevices.end(), device);
+        auto it = mDevices.find(device->mSerial);
         assert(it != mDevices.end()); // device does not exist
         mDevices.erase(it);
     }

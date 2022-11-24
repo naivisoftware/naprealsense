@@ -22,7 +22,9 @@ namespace nap
     //////////////////////////////////////////////////////////////////////////
 
     /**
-     * RealSenseFrameSetFilter is a filter that can be applied to a set of frames
+     * RealSenseFrameSetFilter is a filter that can be applied to a set of frames.
+     * It can be part of a vector in the RealSenseFilterStackComponent effectively acting as a filter stack that filters
+     * a frameset in a specific order
      */
     class NAPAPI RealSenseFrameSetFilter : public Resource
     {
@@ -78,13 +80,16 @@ namespace nap
          */
         bool init(utility::ErrorState& errorState) override;
 
+        // properties
         ERealSenseStreamType mStreamType = ERealSenseStreamType::REALSENSE_STREAMTYPE_DEPTH; ///< Property: 'Stream' stream type to align to
     private:
         struct Impl;
         std::unique_ptr<Impl> mImpl;
     };
 
-
+    /**
+     * RealSenseFrameSetCutDistanceFilter cuts the range of a depth stream
+     */
     class NAPAPI RealSenseFrameSetCutDistanceFilter final : public RealSenseFrameSetFilter
     {
     RTTI_ENABLE(RealSenseFrameSetFilter)
@@ -119,12 +124,15 @@ namespace nap
          */
         void changeCuttingRange(const glm::vec2& range);
 
-        glm::vec2 mCuttingRange = { 0.2f, 2.0f };    ///< Property: 'CuttingRange'
+        // properties
+        glm::vec2 mCuttingRange = { 0.2f, 2.0f };    ///< Property: 'CuttingRange' cut range according to depth, minimum and maximum values in meters
     private:
         std::mutex mMutex;
     };
 
-
+    /**
+     * RealSenseFrameSetCutDistanceFilter crops the borders of a video stream
+     */
     class NAPAPI RealSenseFrameCropBordersFilter final : public RealSenseFrameSetFilter
     {
     RTTI_ENABLE(RealSenseFrameSetFilter)
@@ -159,22 +167,33 @@ namespace nap
          */
         void changeCrop(const glm::vec4& crop);
 
-        glm::vec4 mBorderCrop = { 0.0f, 0.0f, 0.0f, 0.0f };    ///< Property: 'BorderCrop'
+        // properties
+        ERealSenseStreamType mStreamType = ERealSenseStreamType::REALSENSE_STREAMTYPE_DEPTH; ///< Property: 'StreamType' video streamtype to crop
+        glm::vec4 mBorderCrop = { 0.0f, 0.0f, 0.0f, 0.0f }; ///< Property: 'BorderCrop' crops image left, top, right, bottom side using normalized (0-1) values
     private:
         std::mutex mMutex;
     };
 
-
+    /**
+     * RealSenseFrameHolesFillingFilter implements the RealSense hole filling algorithm
+     * The filter implements several methods to rectify missing data in the resulting image.
+     * The filter obtains the four immediate pixel "neighbors" (up, down ,left, right), and selects one of them according to a user-defined rule.
+     * See https://dev.intelrealsense.com/docs/post-processing-filters
+     */
     class NAPAPI RealSenseFrameHolesFillingFilter final : public RealSenseFrameSetFilter
     {
     RTTI_ENABLE(RealSenseFrameSetFilter)
     public:
+        /**
+         * Enum describing hole filling method
+         */
         enum NAPAPI EHoleFilling : int
         {
             FILL_FROM_LEFT = 0,
             FARTHEST_FROM_AROUND = 1,
             NEAREST_FROM_AROUND = 2
         };
+
         /**
          * Constructor
          */
@@ -199,13 +218,20 @@ namespace nap
          */
         bool init(utility::ErrorState& errorState) override;
 
-        EHoleFilling mHoleFilling = EHoleFilling::FARTHEST_FROM_AROUND;
+        // properties
+        EHoleFilling mHoleFilling = EHoleFilling::FARTHEST_FROM_AROUND; ///< Property: 'HoleFilling' Control the data that will be used to fill the invalid pixels
     private:
         struct Impl;
         std::unique_ptr<Impl> mImpl;
     };
 
-
+    /**
+     * RealSenseTemporalFilter implements the RealSense Temporal filter algorithm
+     * The temporal filter is intended to improve the depth data persistency by manipulating per-pixel values based on previous frames.
+     * The filter performs a single pass on the data, adjusting the depth values while also updating the tracking history. In cases where the pixel data is missing or invalid the filter uses a user-defined persistency mode to decide whether the missing value should be rectified with stored data.
+     * Note that due to its reliance on historic data the filter may introduce visible blurring/smearing artefacts, and therefore is best-suited for static scenes.
+     * See https://dev.intelrealsense.com/docs/post-processing-filters
+     */
     class NAPAPI RealSenseTemporalFilter final : public RealSenseFrameSetFilter
     {
     RTTI_ENABLE(RealSenseFrameSetFilter)
@@ -234,9 +260,10 @@ namespace nap
          */
         bool init(utility::ErrorState& errorState) override;
 
-        float mSmoothAlpha = 0.4f;
-        int mSmoothDelta = 20;
-        int mPersistencyIndex = 3;
+        // properties
+        float mSmoothAlpha = 0.4f; ///< Property: 'SmoothAlpha' The Alpha factor in an exponential moving average with Alpha=1 - no filter . Alpha = 0 - infinite filter
+        int mSmoothDelta = 20; ///< Property: 'SmoothDelta' Step-size boundary. Establishes the threshold used to preserve surfaces (edges) [0-100]
+        int mPersistenceIndex = 3; ///< Property: 'PersistenceIndex' A set of predefined rules (masks) that govern when missing pixels will be replace with the last valid value so that the data will remain persistent over time [0-8]
     private:
         struct Impl;
         std::unique_ptr<Impl> mImpl;

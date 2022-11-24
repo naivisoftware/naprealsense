@@ -7,6 +7,9 @@ struct rs2_intrinsics;
 
 namespace nap
 {
+    /**
+     * ERealSenseStreamType can be cast to rs2_stream
+     */
     enum NAPAPI ERealSenseStreamType : int
     {
         REALSENSE_STREAMTYPE_ANY            = 0,
@@ -21,6 +24,9 @@ namespace nap
         REALSENSE_STREAMTYPE_CONFIDENCE     = 9  /**< 4 bit per-pixel depth confidence level */
     };
 
+    /**
+     * ERealSenseStreamFormat can be cast to rs2_format
+     */
     enum NAPAPI ERealSenseStreamFormat : int
     {
         REALSENSE_FORMAT_ANY             = 0, /**< When passed to enable stream, librealsense will try to provide best suited format */
@@ -57,6 +63,9 @@ namespace nap
         REALSENSE_FORMAT_COUNT           = 31  /**< Number of enumeration values. Not a valid input: intended to be used in for-loops. */
     };
 
+    /**
+     * ERealSenseDistortionModels can be cast to rs2_distortion
+     */
     enum NAPAPI ERealSenseDistortionModels : int
     {
         RS2_DISTORTION_NONE                  = 0, /**< Rectilinear images. No distortion compensation required. */
@@ -68,6 +77,9 @@ namespace nap
         RS2_DISTORTION_COUNT                 = 6  /**< Number of enumeration values. Not a valid input: intended to be used in for-loops. */
     } ;
 
+    /**
+     * Contains RealSense camera intrinsics, can be cast from & to rs2_intrinsics using fromRS2Intrinsics(const rs2_intrinsics& intrinsics) and toRS2Intrinsics()
+     */
     struct NAPAPI RealSenseCameraIntrinsics
     {
         int           mWidth;     /**< Width of the image in pixels */
@@ -79,17 +91,29 @@ namespace nap
         ERealSenseDistortionModels mModel;    /**< Distortion model of the image */
         float         mCoeffs[5]; /**< Distortion coefficients. Order for Brown-Conrady: [k1, k2, p1, p2, k3]. Order for F-Theta Fish-eye: [k1, k2, k3, k4, 0]. Other models are subject to their own interpretations */
 
+        /**
+         * Created a RealSenseCameraIntrinsics from a rs2_intrinsics type
+         * @param intrinsics the rs2_intrinsics
+         * @return created RealSenseCameraIntrinsics struct
+         */
         static RealSenseCameraIntrinsics fromRS2Intrinsics(const rs2_intrinsics& intrinsics);
 
+        /**
+         * Creates a rs2_intrinsics struct from RealSenseCameraIntrinsics
+         * @return a rs2_intrinsics struct
+         */
         rs2_intrinsics toRS2Intrinsics() const;
     };
 
+    /**
+     * RealSenseCameraInfo struct containing information about a connected RealSense camera
+     */
     struct NAPAPI RealSenseCameraInfo
     {
-        std::string mName;
-        std::string mSerial;
-        std::string mFirmware;
-        std::string mProductID;
-        std::string mProductLine;
+        std::string mName;             /**< Name of camera */
+        std::string mSerial;           /**< Serial */
+        std::string mFirmware;         /**< Firmware version */
+        std::string mProductID;        /**< Product id */
+        std::string mProductLine;      /**< Product line */
     };
 }

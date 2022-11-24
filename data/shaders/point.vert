@@ -27,10 +27,8 @@ uniform nap
 
 uniform UBO
 {
-	uniform vec3 		camera_world_position;
 	uniform float		realsense_depth_scale;
 	uniform float		point_size_scale;
-	uniform float 		max_distance;
 } ubo;
 
 uniform cam_intrinsics
@@ -140,21 +138,22 @@ void main(void)
 {
 	float r = texture(depth_texture, in_UV0.xy).r;
 	vec4 c = texture(color_texture, in_UV0.xy).rgba;
-	if(r>0.0)
+	if(c.a==1.0)
 	{
 		vec3 p = deproject_pixel_to_point(in_UV0.xy, r);
-		p.y *= -1.0;
+		p *= -1;
 
 		gl_Position =
-			mvp.projectionMatrix *
-			mvp.viewMatrix *
-			mvp.modelMatrix * vec4(p, 1);
+		mvp.projectionMatrix *
+		mvp.viewMatrix *
+		mvp.modelMatrix * vec4(p, 1);
 
 		pass_Color = c;
 
 		gl_PointSize = ubo.point_size_scale;
 	}else
 	{
+		gl_Position = vec4(0, 0, 0, 0);
 		pass_Color = vec4(0,0,0,0);
 	}
 }

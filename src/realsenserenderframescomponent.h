@@ -7,18 +7,22 @@ namespace nap
 {
     //////////////////////////////////////////////////////////////////////////
 
+    // forward declares
     class RealSenseRenderFramesComponentInstance;
 
+    /**
+     * Describes a stream for the RealSenseRenderFramesComponent to render
+     */
     struct NAPAPI RealSenseRenderFrameDescription
     {
     RTTI_ENABLE()
     public:
-        ERealSenseStreamType mStreamType = ERealSenseStreamType::REALSENSE_STREAMTYPE_COLOR;
-        RenderTexture2D::EFormat mFormat = RenderTexture2D::EFormat::RGBA8;
+        ERealSenseStreamType mStreamType = ERealSenseStreamType::REALSENSE_STREAMTYPE_COLOR; ///< Property: 'StreamType' stream type to render
+        RenderTexture2D::EFormat mFormat = RenderTexture2D::EFormat::RGBA8; ///< Property: 'Format' render texture format to render to
     };
 
     /**
-     * RealSenseRenderFrameComponent
+     * The RealSenseRenderFrameComponent renders frames from a filtered RealSenseDevice frameset given a list of RealSenseRenderFrameDescriptions
      */
     class NAPAPI RealSenseRenderFramesComponent : public RealSenseFrameSetListenerComponent
     {
@@ -43,8 +47,15 @@ namespace nap
          */
         RealSenseRenderFramesComponentInstance* getInstance();
 
-        ComponentPtr<RealSenseFilterStackComponent> mFilterStack;
-        std::vector<RealSenseRenderFrameDescription> mRenderDescriptions;
+        /**
+         * RealSenseRenderFramesComponent depends on RealSenseFilterStackComponent
+		 * @param components list of component types this resource depends on.
+         */
+        void getDependentComponents(std::vector<rtti::TypeInfo> &components) const override;
+
+        // properteis
+        ComponentPtr<RealSenseFilterStackComponent> mFilterStack; ///< Property: 'FilterStack' filter stack to receive process frameset from
+        std::vector<RealSenseRenderFrameDescription> mRenderDescriptions; ///< Property: 'RenderDescriptions' description of frames to render
     private:
         RealSenseRenderFramesComponentInstance* mInstance;
     };
@@ -92,12 +103,12 @@ namespace nap
          * @param errorState contains any errors
          * @return true on success
          */
-        bool onInit(utility::ErrorState& errorState) override;
+        bool init(utility::ErrorState& errorState) final;
 
         /**
          * Called before deconstruction
          */
-        void destroy() override;
+        void onDestroy() final;
 
         /**
          * Update method, uploads new render texture to GPU if necessary

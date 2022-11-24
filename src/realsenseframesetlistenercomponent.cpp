@@ -32,27 +32,4 @@ namespace nap
 
     RealSenseFrameSetListenerComponentInstance::RealSenseFrameSetListenerComponentInstance(EntityInstance& entity, Component& resource) :
         ComponentInstance(entity, resource)			{ }
-
-
-    bool RealSenseFrameSetListenerComponentInstance::init(utility::ErrorState &errorState)
-    {
-        auto *resource = getComponent<RealSenseFrameSetListenerComponent>();
-
-        return onInit(errorState);
-    }
-
-    bool RealSenseFrameSetListenerComponentInstance::onInit(utility::ErrorState& errorState)
-    {
-        return true;
-    }
-
-
-    void RealSenseFrameSetListenerComponentInstance::destroy()
-    {}
-
-
-    void RealSenseFrameSetListenerComponentInstance::onDestroy()
-    {
-        destroy();
-    }
 }

@@ -67,10 +67,10 @@ namespace nap
         bool hasSerialNumber(const std::string& serialNumber) const;
 
         /**
-         * Returns vector of all serial numbers connected
-         * @return vector of all serial numbers connected
+         * Returns vector of all serial numbers found
+         * @return vector of all serial numbers found
          */
-        const std::vector<std::string>& getConnectedSerialNumbers() const{ return mConnectedSerialNumbers; }
+        const std::vector<std::string>& getFoundSerials() const;
 	private:
         /**
          * Registers a RealSenseDevice
@@ -86,7 +86,10 @@ namespace nap
          */
         void removeDevice(RealSenseDevice* device);
 
-        std::vector<RealSenseDevice*> mDevices;
-        std::vector<std::string> mConnectedSerialNumbers;
+        // map of connected realsense devices, key value is serial number
+        std::unordered_map<std::string, RealSenseDevice*> mDevices;
+
+        // vector of found serials
+        std::vector<std::string> mFoundSerials;
 	};
 }

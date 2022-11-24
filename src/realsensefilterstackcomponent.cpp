@@ -49,7 +49,7 @@ namespace nap
     RealSenseFilterStackComponentInstance::~RealSenseFilterStackComponentInstance(){}
 
 
-    bool RealSenseFilterStackComponentInstance::onInit(utility::ErrorState &errorState)
+    bool RealSenseFilterStackComponentInstance::init(utility::ErrorState &errorState)
     {
         mResource = getComponent<RealSenseFilterStackComponent>();
         mResource->mInstance = this;
@@ -65,7 +65,7 @@ namespace nap
     }
 
 
-    void RealSenseFilterStackComponentInstance::destroy()
+    void RealSenseFilterStackComponentInstance::onDestroy()
     {
         mDevice->removeFrameSetListener(this);
     }

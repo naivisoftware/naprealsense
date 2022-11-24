@@ -1,7 +1,6 @@
 #include "realsensedevice.h"
 #include "realsenseservice.h"
 #include "realsenseframesetlistenercomponent.h"
-#include "realsenseframesetfilter.h"
 
 // RealSense includes
 #include <rs.hpp>
@@ -45,6 +44,7 @@ namespace nap
         // Frame queue
         rs2::frame_queue mFrameQueue;
 
+        // Config
         rs2::config mConfig;
     };
 
@@ -89,12 +89,15 @@ namespace nap
 
         if(!mRun.load())
         {
+            // create implementation and create framequeue
             mImplementation = std::make_unique<Impl>();
             mImplementation->mFrameQueue = rs2::frame_queue(mMaxFrameSize);
 
-            if(!handle_error(!mService.getConnectedSerialNumbers().empty(), "No RealSense devices connected!"))
+            // check if there are any devices connected
+            if(!handle_error(!mService.getFoundSerials().empty(), "No RealSense devices connected!"))
                 return mAllowFailure;
 
+            // if a serial number is specified, see if it is connected
             if(!mSerial.empty())
             {
                 if(!handle_error(mService.hasSerialNumber(mSerial),
@@ -102,9 +105,11 @@ namespace nap
                     return mAllowFailure;
             }
 
-           if(!handle_error(mService.registerDevice(this, errorState), "Cannot register device"))
-               return mAllowFailure;
+            // check if device is not already registered to service
+            if(!handle_error(mService.registerDevice(this, errorState), "Cannot register device"))
+                return mAllowFailure;
 
+            // collect all stream types from descriptions and check for duplicate descriptions
             std::vector<ERealSenseStreamType> stream_types;
             for(const auto& stream : mStreams)
             {
@@ -125,12 +130,14 @@ namespace nap
                 mImplementation->mConfig.enable_stream(rs2_stream_type, rs2_stream_format);
             }
 
-            //
+            // if serial is given, add it to the config
             if(!mSerial.empty())
                 mImplementation->mConfig.enable_device(mSerial);
 
+            // try and open device and start pipe with config
             try
             {
+                // start pipe
                 mImplementation->mPipe.start(mImplementation->mConfig);
 
                 /**
@@ -174,6 +181,7 @@ namespace nap
                 return mAllowFailure;
             }
 
+            // initialisation is successful, start process thread
             mRun.store(true);
             mCaptureTask = std::async(std::launch::async, std::bind(&RealSenseDevice::process, this));
             mIsConnected = true;
