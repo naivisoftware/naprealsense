@@ -88,7 +88,7 @@ namespace nap
                                                     }) != render_descriptions.end();
         if(!errorState.check(renders_depth_correctly && renders_video_correctly,
                             "%s doesn't render video or depth correctly. A depth stream must be rendered using format R16"
-                            " and video stream must be rendered using format RGBA8"))
+                            " and video stream must be rendered using format RGBA8", mID.c_str()))
             return false;
 
         return true;

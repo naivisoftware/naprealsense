@@ -8,5 +8,9 @@
     "WindowsDllSearchPaths": [
 		"{ROOT}/../thirdparty/realsense/msvc/x86_64/lib",
 		"{ROOT}/thirdparty/realsense/msvc/x86_64/lib"
-	]
+	],
+    "DataSearchPaths": [
+      "{ROOT}/modules/naprealsense/data",
+      "{ROOT}/modules/{MODULE_NAME}/data"
+    ]
 }

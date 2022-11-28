@@ -4,20 +4,6 @@
 
 #version 450 core
 
-
-/**
-typedef enum rs2_distortion
-{
-RS2_DISTORTION_NONE
-RS2_DISTORTION_MODIFIED_BROWN_CONRADY, 1
-RS2_DISTORTION_INVERSE_BROWN_CONRADY , 2
-RS2_DISTORTION_FTHETA                , 3
-RS2_DISTORTION_BROWN_CONRADY         , 4
-RS2_DISTORTION_KANNALA_BRANDT4       , 5
-RS2_DISTORTION_COUNT
-} rs2_distortion;
-*/
-
 uniform nap
 {
 	mat4 projectionMatrix;
@@ -140,16 +126,11 @@ void main(void)
 	vec4 c = texture(color_texture, in_UV0.xy).rgba;
 	if(c.a==1.0)
 	{
-		vec3 p = deproject_pixel_to_point(in_UV0.xy, r);
-		p *= -1;
+		vec3 p = deproject_pixel_to_point(in_UV0.xy, r) * -1.0;
 
-		gl_Position =
-		mvp.projectionMatrix *
-		mvp.viewMatrix *
-		mvp.modelMatrix * vec4(p, 1);
+		gl_Position = mvp.projectionMatrix * mvp.viewMatrix * mvp.modelMatrix * vec4(p, 1);
 
 		pass_Color = c;
-
 		gl_PointSize = ubo.point_size_scale;
 	}else
 	{

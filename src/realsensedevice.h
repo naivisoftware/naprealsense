@@ -132,7 +132,7 @@ namespace nap
         std::atomic_bool        mRun = { false };
         std::atomic<float>      mLatestDepthScale;
 
-        bool mIsConnected = false;
+        bool mIsConnected       = false;
 
         RealSenseService&       mService;
         RealSenseCameraInfo     mCameraInfo;
