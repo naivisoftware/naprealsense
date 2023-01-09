@@ -1,0 +1,429 @@
+{
+    "Objects": [
+        {
+            "Type": "nap::Entity",
+            "mID": "CameraEntity",
+            "Components": [
+                {
+                    "Type": "nap::PerspCameraComponent",
+                    "mID": "PerspectiveCamera",
+                    "Properties": {
+                        "FieldOfView": 50.0,
+                        "NearClippingPlane": 0.009999999776482582,
+                        "FarClippingPlane": 10.0,
+                        "GridDimensions": {
+                            "x": 1,
+                            "y": 1
+                        },
+                        "GridLocation": {
+                            "x": 0,
+                            "y": 0
+                        }
+                    }
+                },
+                {
+                    "Type": "nap::TransformComponent",
+                    "mID": "CameraTransform",
+                    "Properties": {
+                        "Translate": {
+                            "x": 0.0,
+                            "y": 0.0,
+                            "z": 0.0
+                        },
+                        "Rotate": {
+                            "x": 0.0,
+                            "y": 180.0,
+                            "z": 0.0
+                        },
+                        "Scale": {
+                            "x": 1.0,
+                            "y": 1.0,
+                            "z": 1.0
+                        },
+                        "UniformScale": 1.0
+                    }
+                },
+                {
+                    "Type": "nap::PointerInputComponent",
+                    "mID": "CameraPointerInput"
+                },
+                {
+                    "Type": "nap::FirstPersonController",
+                    "mID": "FirstPersonController",
+                    "MovementSpeed": 1.0,
+                    "RotateSpeed": 0.009999999776482582,
+                    "PerspCameraComponent": "./PerspectiveCamera"
+                },
+                {
+                    "Type": "nap::KeyInputComponent",
+                    "mID": "nap::KeyInputComponent_96251e5d"
+                }
+            ],
+            "Children": []
+        },
+        {
+            "Type": "nap::Entity",
+            "mID": "RealSenseEntity",
+            "Components": [
+                {
+                    "Type": "nap::RealSenseRenderFrameComponent",
+                    "mID": "RenderColorComponent",
+                    "RealSenseDevice": "RealSenseDevice",
+                    "Format": "RGBA8",
+                    "StreamType": "Color",
+                    "Filters": []
+                },
+                {
+                    "Type": "nap::RealSenseRenderFrameComponent",
+                    "mID": "RenderDepthComponent",
+                    "RealSenseDevice": "RealSenseDevice",
+                    "Format": "R16",
+                    "StreamType": "Depth",
+                    "Filters": [
+                        {
+                            "Type": "nap::RealSenseDecFilter",
+                            "mID": "RealSenseDecFilter_195924be",
+                            "Magnitude": 3.0
+                        }
+                    ]
+                }
+            ],
+            "Children": []
+        },
+        {
+            "Type": "nap::Entity",
+            "mID": "RenderEntity",
+            "Components": [
+                {
+                    "Type": "nap::TransformComponent",
+                    "mID": "TransformComponent",
+                    "Properties": {
+                        "Translate": {
+                            "x": 0.0,
+                            "y": 0.0,
+                            "z": 0.0
+                        },
+                        "Rotate": {
+                            "x": 0.0,
+                            "y": 0.0,
+                            "z": 0.0
+                        },
+                        "Scale": {
+                            "x": 1.0,
+                            "y": 1.0,
+                            "z": 1.0
+                        },
+                        "UniformScale": 1.0
+                    }
+                },
+                {
+                    "Type": "nap::RealSenseRenderPointCloudComponent",
+                    "mID": "RenderPointCloud",
+                    "Visible": true,
+                    "Mesh": "PointCloudMesh",
+                    "MaterialInstance": {
+                        "Uniforms": [],
+                        "Samplers": [
+                            {
+                                "Type": "nap::Sampler2D",
+                                "mID": "Sampler2D_f42ae5d6",
+                                "Name": "color_texture",
+                                "MinFilter": "Nearest",
+                                "MaxFilter": "Nearest",
+                                "MipMapMode": "Linear",
+                                "AddressModeVertical": "ClampToEdge",
+                                "AddressModeHorizontal": "ClampToEdge",
+                                "MaxLodLevel": 1000,
+                                "AnisotropicSamples": "Default",
+                                "Texture": "ColorTexture"
+                            },
+                            {
+                                "Type": "nap::Sampler2D",
+                                "mID": "Sampler2D_2fcbe6dc",
+                                "Name": "depth_texture",
+                                "MinFilter": "Nearest",
+                                "MaxFilter": "Nearest",
+                                "MipMapMode": "Linear",
+                                "AddressModeVertical": "ClampToEdge",
+                                "AddressModeHorizontal": "ClampToEdge",
+                                "MaxLodLevel": 1000,
+                                "AnisotropicSamples": "Default",
+                                "Texture": "DepthTexture"
+                            }
+                        ],
+                        "Buffers": [],
+                        "Material": "PointCloudMaterial",
+                        "BlendMode": "NotSet",
+                        "DepthMode": "NotSet"
+                    },
+                    "LineWidth": 1.0,
+                    "ClipRect": {
+                        "Min": {
+                            "x": 0.0,
+                            "y": 0.0
+                        },
+                        "Max": {
+                            "x": 0.0,
+                            "y": 0.0
+                        }
+                    },
+                    "Device": "RealSenseDevice",
+                    "CameraTransform": "../CameraEntity/CameraTransform",
+                    "PointSize": 4.0,
+                    "MaxDistance": 5.0,
+                    "DepthRenderer": "../RealSenseEntity/RenderDepthComponent",
+                    "ColorRenderer": "../RealSenseEntity/RenderColorComponent"
+                }
+            ],
+            "Children": []
+        },
+        {
+            "Type": "nap::RenderWindow",
+            "mID": "Window",
+            "Borderless": false,
+            "Resizable": true,
+            "Visible": true,
+            "SampleShading": true,
+            "Title": "Point Cloud GPU",
+            "Width": 1280,
+            "Height": 720,
+            "Mode": "Immediate",
+            "ClearColor": {
+                "Values": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ]
+            },
+            "Samples": "Four",
+            "AdditionalSwapImages": 1
+        },
+        {
+            "Type": "nap::ResourceGroup",
+            "mID": "PointCloudGroup",
+            "Members": [
+                {
+                    "Type": "nap::ShaderFromFile",
+                    "mID": "PointCloudShader",
+                    "VertShader": "point.vert",
+                    "FragShader": "point.frag"
+                },
+                {
+                    "Type": "nap::Material",
+                    "mID": "PointCloudMaterial",
+                    "Uniforms": [
+                        {
+                            "Type": "nap::UniformStruct",
+                            "mID": "UniformStruct_a0e74d10",
+                            "Name": "cam_intrinsics",
+                            "Uniforms": [
+                                {
+                                    "Type": "nap::UniformFloat",
+                                    "mID": "UniformFloat_8e1bc2f7",
+                                    "Name": "width",
+                                    "Value": 0.0
+                                },
+                                {
+                                    "Type": "nap::UniformFloat",
+                                    "mID": "UniformFloat_f3b644c3",
+                                    "Name": "height",
+                                    "Value": 0.0
+                                },
+                                {
+                                    "Type": "nap::UniformFloat",
+                                    "mID": "UniformFloat_74556496",
+                                    "Name": "ppx",
+                                    "Value": 0.0
+                                },
+                                {
+                                    "Type": "nap::UniformFloat",
+                                    "mID": "UniformFloat_9a3738bd",
+                                    "Name": "ppy",
+                                    "Value": 0.0
+                                },
+                                {
+                                    "Type": "nap::UniformFloat",
+                                    "mID": "UniformFloat_c03dac8c",
+                                    "Name": "fx",
+                                    "Value": 0.0
+                                },
+                                {
+                                    "Type": "nap::UniformFloat",
+                                    "mID": "UniformFloat_bed9d5ef",
+                                    "Name": "fy",
+                                    "Value": 0.0
+                                },
+                                {
+                                    "Type": "nap::UniformInt",
+                                    "mID": "UniformInt_2c57215f",
+                                    "Name": "model",
+                                    "Value": 0
+                                },
+                                {
+                                    "Type": "nap::UniformFloatArray",
+                                    "mID": "UniformFloatArray_397132ea",
+                                    "Name": "coeffs",
+                                    "Values": [
+                                        0.0,
+                                        0.0,
+                                        0.0,
+                                        0.0,
+                                        0.0
+                                    ]
+                                },
+                                {
+                                    "Type": "nap::UniformFloat",
+                                    "mID": "UniformFloat_0c0942e4",
+                                    "Name": "depth_scale",
+                                    "Value": 2.0
+                                }
+                            ]
+                        },
+                        {
+                            "Type": "nap::UniformStruct",
+                            "mID": "UniformStruct_4897916d",
+                            "Name": "UBO",
+                            "Uniforms": [
+                                {
+                                    "Type": "nap::UniformVec3",
+                                    "mID": "UniformVec3_920d1202",
+                                    "Name": "camera_world_position",
+                                    "Value": {
+                                        "x": 0.0,
+                                        "y": 0.0,
+                                        "z": 0.0
+                                    }
+                                },
+                                {
+                                    "Type": "nap::UniformFloat",
+                                    "mID": "UniformFloat_5e92bed5",
+                                    "Name": "realsense_depth_scale",
+                                    "Value": 0.0
+                                },
+                                {
+                                    "Type": "nap::UniformFloat",
+                                    "mID": "UniformFloat_39d4cb11",
+                                    "Name": "point_size_scale",
+                                    "Value": 0.0
+                                }
+                            ]
+                        }
+                    ],
+                    "Samplers": [],
+                    "Buffers": [],
+                    "Shader": "PointCloudShader",
+                    "VertexAttributeBindings": [
+                        {
+                            "MeshAttributeID": "Position",
+                            "ShaderAttributeID": "in_Position"
+                        },
+                        {
+                            "MeshAttributeID": "UV0",
+                            "ShaderAttributeID": "in_UV0"
+                        },
+                        {
+                            "MeshAttributeID": "Color0",
+                            "ShaderAttributeID": "in_Color0"
+                        }
+                    ],
+                    "BlendMode": "AlphaBlend",
+                    "DepthMode": "ReadWrite"
+                },
+                {
+                    "Type": "nap::PointCloudMesh",
+                    "mID": "PointCloudMesh",
+                    "Rows": 300,
+                    "Colums": 300
+                }
+            ],
+            "Children": []
+        },
+        {
+            "Type": "nap::ResourceGroup",
+            "mID": "RealSense",
+            "Members": [
+                {
+                    "Type": "nap::RealSenseDevice",
+                    "mID": "RealSenseDevice",
+                    "Serial": "",
+                    "MaxFrameSize": 5,
+                    "Streams": [
+                        {
+                            "Type": "nap::RealSenseStreamDescription",
+                            "mID": "RealSenseStreamDescription_73cb02ec",
+                            "Format": "RGBA8",
+                            "Stream": "Color"
+                        },
+                        {
+                            "Type": "nap::RealSenseStreamDescription",
+                            "mID": "RealSenseStreamDescription_a5654f50",
+                            "Format": "Z16",
+                            "Stream": "Depth"
+                        }
+                    ],
+                    "Filters": [
+                        {
+                            "Type": "nap::RealSenseFrameSetAlignFilter",
+                            "mID": "RealSenseFrameSetAlignFilter_16cc8a5f",
+                            "Align To": "Depth"
+                        }
+                    ]
+                },
+                {
+                    "Type": "nap::RenderTexture2D",
+                    "mID": "DepthTexture",
+                    "Usage": "Static",
+                    "Width": 1,
+                    "Height": 1,
+                    "Format": "R16",
+                    "ColorSpace": "Linear",
+                    "ClearColor": {
+                        "Values": [
+                            0.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ]
+                    }
+                },
+                {
+                    "Type": "nap::RenderTexture2D",
+                    "mID": "ColorTexture",
+                    "Usage": "Static",
+                    "Width": 1,
+                    "Height": 1,
+                    "Format": "RGBA8",
+                    "ColorSpace": "Linear",
+                    "ClearColor": {
+                        "Values": [
+                            0.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ]
+                    }
+                }
+            ],
+            "Children": []
+        },
+        {
+            "Type": "nap::Scene",
+            "mID": "Scene",
+            "Entities": [
+                {
+                    "Entity": "RenderEntity",
+                    "InstanceProperties": []
+                },
+                {
+                    "Entity": "CameraEntity",
+                    "InstanceProperties": []
+                },
+                {
+                    "Entity": "RealSenseEntity",
+                    "InstanceProperties": []
+                }
+            ]
+        }
+    ]
+}

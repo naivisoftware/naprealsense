@@ -1,9 +1,21 @@
 {
-    "Type": "nap::ModuleInfo", 
-    "mID": "ModuleInfo", 
+    "Type": "nap::ModuleInfo",
+    "mID": "ModuleInfo",
+    "DemoApp" : "realsense_pointcloud_gpu",
     "RequiredModules": [
-        "mod_napmath",
-        "mod_naprender"
-    ], 
-    "WindowsDllSearchPaths": []
+		"napmath",
+        "naprender"
+    ],
+    "WindowsDllSearchPaths": [
+		"{ROOT}/../thirdparty/realsense/msvc/x86_64/lib",
+		"{ROOT}/thirdparty/realsense/msvc/x86_64/lib"
+	],
+    "LibrarySearchPaths": {
+      "Linux": [
+        "{ROOT}/modules/naprealsense/thirdparty/realsense/linux/{BUILD_ARCH}"
+      ],
+      "Windows": [
+        "{ROOT}/modules/naprealsense/thirdparty/realsense/msvc/{BUILD_ARCH}/{BUILD_TYPE}"
+      ]
+  }
 }

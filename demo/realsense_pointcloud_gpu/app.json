@@ -1,0 +1,20 @@
+{
+    "Type": "nap::ProjectInfo",
+    "mID": "ProjectInfo",
+    "Title": "realsense_pointcloud_gpu",
+    "Version": "1.0.0",
+    "RequiredModules": [
+        "napapp",
+        "napparametergui",
+        "naprealsense",
+        "naprender",
+        "napaudio",
+        "napvideo",
+        "napscene",
+        "napcameracontrol",
+        "napparameter"
+    ],
+    "Data": "data/default.json",
+    "ServiceConfig": "",
+    "PathMapping": "cache/path_mapping.json"
+}
