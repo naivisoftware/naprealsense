@@ -5,7 +5,7 @@ if(WIN32)
               )
     set(REALSENSE_INCLUDE_DIR ${REALSENSE_DIR}/source)
     set(REALSENSE_LIBS_DIR ${REALSENSE_DIR}/msvc/x86_64/lib)
-    set(REALSENSE_LIBS ${REALSENSE_LIBS_DIR}/lib/realsense2.lib)
+    set(REALSENSE_LIBS ${REALSENSE_LIBS_DIR}/realsense2.lib)
     set(REALSENSE_LIBS_RELEASE_DLL ${REALSENSE_LIBS_DIR}/realsense2.dll)
 elseif(UNIX)
     find_path(REALSENSE_DIR
