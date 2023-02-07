@@ -170,7 +170,6 @@
                     "Device": "RealSenseDevice",
                     "CameraTransform": "../CameraEntity/CameraTransform",
                     "PointSize": 4.0,
-                    "MaxDistance": 5.0,
                     "DepthRenderer": "../RealSenseEntity/RenderDepthComponent",
                     "ColorRenderer": "../RealSenseEntity/RenderColorComponent"
                 }
@@ -197,18 +196,14 @@
                 ]
             },
             "Samples": "Four",
-            "AdditionalSwapImages": 1
+            "AdditionalSwapImages": 1,
+            "RestoreSize": true,
+            "RestorePosition": true
         },
         {
             "Type": "nap::ResourceGroup",
             "mID": "PointCloudGroup",
             "Members": [
-                {
-                    "Type": "nap::ShaderFromFile",
-                    "mID": "PointCloudShader",
-                    "VertShader": "point.vert",
-                    "FragShader": "point.frag"
-                },
                 {
                     "Type": "nap::Material",
                     "mID": "PointCloudMaterial",
@@ -334,7 +329,12 @@
                     "Type": "nap::PointCloudMesh",
                     "mID": "PointCloudMesh",
                     "Rows": 300,
-                    "Colums": 300
+                    "Colums": 300,
+                    "Size": 300
+                },
+                {
+                    "Type": "nap::PointCloudShader",
+                    "mID": "PointCloudShader"
                 }
             ],
             "Children": []
