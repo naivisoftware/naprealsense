@@ -13,12 +13,12 @@
 
 // nap::PointCloudShader run time class definition
 RTTI_BEGIN_CLASS_NO_DEFAULT_CONSTRUCTOR(nap::PointCloudShader)
-        RTTI_CONSTRUCTOR(nap::Core&)
+    RTTI_CONSTRUCTOR(nap::Core&)
 RTTI_END_CLASS
 
 
 //////////////////////////////////////////////////////////////////////////
-// ColorAdjustmentShader
+// PointCloudShader
 //////////////////////////////////////////////////////////////////////////
 
 namespace nap
