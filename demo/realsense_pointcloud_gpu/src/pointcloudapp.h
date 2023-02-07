@@ -22,19 +22,17 @@ namespace nap
 	using namespace rtti;
 
     /**
-     * Example application, called from within the main loop.
-	 * 
-	 * Use this app as a template for other apps that are created directly in 'source'.
-	 * This example links to and uses it's own custom module: 'mod_example'.
-	 * More information and documentation can be found at: https://www.napframework.com/doxygen/
+     * Demo application to demonstrate the RealSense module
+     * Application renders a pointcloud that is deformed using the PointCloud shader of the RealSense module
+     * The PointCloud shader implements the de-projection methods from the realsense SDK, deforming the point cloud mesh completely on the GPU
      */
-    class CoreApp : public App 
+    class PointCloudApp : public App
 	{
     public:
 		/**
 		 * Constructor
 		 */
-        CoreApp(nap::Core& core) : App(core) {}
+        PointCloudApp(nap::Core& core) : App(core) {}
 
         /**
          * Initialize all the services and app specific data structures
@@ -81,11 +79,10 @@ namespace nap
 		ObjectPtr<RenderWindow>		mRenderWindow;					///< Pointer to the render window	
 		ObjectPtr<Scene>			mScene = nullptr;				///< Pointer to the main scene
 		ObjectPtr<EntityInstance>	mCameraEntity = nullptr;		///< Pointer to the entity that holds the perspective camera
-		ObjectPtr<EntityInstance>	mRenderEntity = nullptr;		///< Pointer to the entity that can render the gnomon
-        ObjectPtr<EntityInstance>	mRealSenseEntity = nullptr;		///< Pointer to the entity that can render the gnomon
-
-        ObjectPtr<RealSenseDevice>  mRealSenseDevice;
-        ObjectPtr<RenderTexture2D>  mColorTexture;
-        ObjectPtr<RenderTexture2D>  mDepthTexture;
+        ObjectPtr<EntityInstance>	mRealSenseEntity = nullptr;		///< Pointer to the realsense entity
+        ObjectPtr<RealSenseDevice>  mRealSenseDevice = nullptr;		///< Pointer to the realsense device
+        ObjectPtr<RenderTexture2D>  mColorTexture = nullptr;        ///< Pointer to the color render texture
+        ObjectPtr<RenderTexture2D>  mDepthTexture = nullptr;        ///< Pointer to the depth render texture
+        ObjectPtr<EntityInstance>   mRenderEntity = nullptr;        ///< Pointer to the render entity containing the renderable pointcloud
 	};
 }

@@ -1,5 +1,5 @@
 // Local Includes
-#include "exampleapp.h"
+#include "pointcloudapp.h"
 
 // External Includes
 #include <utility/fileutils.h>
@@ -13,7 +13,7 @@
 
 namespace nap 
 {    
-    bool CoreApp::init(utility::ErrorState& error)
+    bool PointCloudApp::init(utility::ErrorState& error)
     {
 		// Retrieve services
 		mRenderService	= getCore().getService<nap::RenderService>();
@@ -57,7 +57,7 @@ namespace nap
 
 
     // Called when the window is going to render
-    void CoreApp::render()
+    void PointCloudApp::render()
     {
 		// Signal the beginning of a new frame, allowing it to be recorded.
 		// The system might wait until all commands that were previously associated with the new frame have been processed on the GPU.
@@ -96,13 +96,13 @@ namespace nap
     }
 
 
-    void CoreApp::windowMessageReceived(WindowEventPtr windowEvent)
+    void PointCloudApp::windowMessageReceived(WindowEventPtr windowEvent)
     {
 		mRenderService->addEvent(std::move(windowEvent));
     }
 
 
-    void CoreApp::inputMessageReceived(InputEventPtr inputEvent)
+    void PointCloudApp::inputMessageReceived(InputEventPtr inputEvent)
     {
 		// If we pressed escape, quit the loop
 		if (inputEvent->get_type().is_derived_from(RTTI_OF(nap::KeyPressEvent)))
@@ -118,13 +118,13 @@ namespace nap
     }
 
 
-    int CoreApp::shutdown()
+    int PointCloudApp::shutdown()
     {
 		return 0;
     }
 
 
-    void CoreApp::update(double deltaTime)
+    void PointCloudApp::update(double deltaTime)
     {
 		// Use a default input router to forward input events (recursively) to all input components in the scene
 		// This is explicit because we don't know what entity should handle the events from a specific window.
@@ -137,7 +137,7 @@ namespace nap
         ImGui::TextColored(mGuiService->getPalette().mHighlightColor2, "left mouse button to rotate, right mouse button to zoom");
         ImGui::Text(utility::stringFormat("Framerate: %.02f", getCore().getFramerate()).c_str());
 
-        // Display world texture in GUI
+        // Display render textures in GUI
         if (ImGui::CollapsingHeader("Textures"))
         {
             auto* color_renderer = mRealSenseEntity->findComponentByID<RealSenseRenderFrameComponentInstance>("RenderColorComponent");
