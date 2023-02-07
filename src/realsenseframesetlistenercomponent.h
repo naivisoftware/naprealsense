@@ -18,20 +18,20 @@
 namespace rs2
 {
     class frameset;
-    class frame;
 }
 
 namespace nap
 {
     //////////////////////////////////////////////////////////////////////////
 
+    // forward declares
     class RealSenseDevice;
     class RealSenseStreamDescription;
     class RealSenseFrameSetListenerComponentInstance;
-    class RealSenseFrameFilter;
 
     /**
-     * RealSenseFrameSetListenerComponent component
+     * RealSenseFrameSetListenerComponent is the resource of RealSenseFrameSetListenerComponentInstance
+     * RealSenseFrameSetListenerComponent needs a reference to a RealSenseDevice it subscribes to
      */
     class NAPAPI RealSenseFrameSetListenerComponent : public Component
     {
@@ -47,11 +47,13 @@ namespace nap
          * Destructor
          */
         virtual ~RealSenseFrameSetListenerComponent();
+
+        // Properties
+        ResourcePtr<RealSenseDevice> mDevice; ///< Property: 'Device' the device this component receives frames from
     };
 
     /**
-     * RealSenseFrameSetListenerComponentInstance listens to frames and applies any necessary processing/filtering
-     * Calls frameReceived signal with filtered frame
+     * RealSenseFrameSetListenerComponentInstance subscribes to the device and receives (processed) framesets
      */
     class NAPAPI RealSenseFrameSetListenerComponentInstance : public ComponentInstance
     {
@@ -60,10 +62,11 @@ namespace nap
     public:
         /**
          * Constructor
-         * @param entity
-         * @param resource
+         * @param entity reference to entity instance
+         * @param resource reference to component
          */
-        RealSenseFrameSetListenerComponentInstance(EntityInstance& entity, Component& resource) ;
+        RealSenseFrameSetListenerComponentInstance(EntityInstance& entity, Component& resource) :
+            ComponentInstance(entity, resource)	{ }
 
         /**
          * Destructor
@@ -71,32 +74,39 @@ namespace nap
         virtual ~RealSenseFrameSetListenerComponentInstance();
 
         /**
-         * Initialization
+         * Initialization method
          * @param errorState contains any errors
          * @return true on success
          */
         virtual bool init(utility::ErrorState& errorState) override final;
 
         /**
-         * Called before deconstruction
+         * Called before destruction
          */
         virtual void onDestroy() override final;
 
-        /**
-         * Called from RealSense device upon receiving a new frameset, called from RealSense processing thread
-         */
-        virtual void trigger(RealSenseDevice* device, const rs2::frameset& frameset) = 0;
+        // Signal triggered on new frame from process thread of RealSenseDevice
+        Signal<const rs2::frameset&> frameSetReceived;
     protected:
         /**
-         * internal initialization method called from init
+         * Extend this mehthod to implement custom initialization, called from init method
          * @param errorState contains any errors
          * @return true on success
          */
         virtual bool onInit(utility::ErrorState& errorState);
 
         /**
-         * Called before deconstruction
+         * Called before destruction
          */
         virtual void destroy();
+
+        /**
+         * Called from RealSenseDevice, triggers frameSetReceived signal
+         * @param frameset the frameset
+         */
+        void trigger(const rs2::frameset& frameset);
+
+        // pointer to RealSenseDevice
+        RealSenseDevice* mDevice;
     };
 }

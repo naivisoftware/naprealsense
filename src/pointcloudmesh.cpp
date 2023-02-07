@@ -14,28 +14,26 @@ RTTI_END_CLASS
 
 namespace nap
 {
+    //////////////////////////////////////////////////////////////////////////
+    // PointCloudMesh
+    //////////////////////////////////////////////////////////////////////////
+
     PointCloudMesh::PointCloudMesh(Core& core) : mRenderService(core.getService<RenderService>()) {}
 
-    PointCloudMesh::~PointCloudMesh(){}
+
+    PointCloudMesh::~PointCloudMesh() = default;
+
 
     bool PointCloudMesh::init(utility::ErrorState& errorState)
     {
         // Setup plane
-        if (!setup(errorState))
-            return false;
-
-        // Initialize instance
-        return mMeshInstance->init(errorState);
-    }
-
-    bool PointCloudMesh::setup(utility::ErrorState& error)
-    {
         assert(mRenderService != nullptr);
         mMeshInstance = std::make_unique<MeshInstance>(*mRenderService);
 
         constructPointCloud(*mMeshInstance);
 
-        return true;
+        // Initialize instance
+        return mMeshInstance->init(errorState);
     }
 
 
@@ -54,7 +52,7 @@ namespace nap
         Vec4VertexAttribute& color_attribute = mesh.getOrCreateAttribute<glm::vec4>(vertexid::getColorName(0));
 
         // Set the number of vertices to use
-        mesh.setNumVertices(vert_count);
+        mesh.setNumVertices(static_cast<int>(vert_count));
         mesh.setDrawMode(EDrawMode::Points);
         mesh.setUsage(mUsage);
         mesh.setCullMode(mCullMode);
@@ -72,14 +70,8 @@ namespace nap
                 float y_part = static_cast<float>(y) / static_cast<float>(height);
                 uvs[idx] = { x_part, y_part, 0.0f };
 
-                float r = 0.0f;
-                if(width >= height)
-                {
-                    r = (static_cast<float>(height) / static_cast<float>(width)) * mSize;
-                }else
-                {
-                    r = (static_cast<float>(width) / static_cast<float>(height)) * mSize;
-                }
+                float r = width >= height ? (static_cast<float>(height) / static_cast<float>(width)) * mSize :
+                                            (static_cast<float>(width) / static_cast<float>(height)) * mSize;
                 vertices[idx] = { x_part * r, y_part * mSize, 0.0f };
             }
         }
@@ -88,12 +80,12 @@ namespace nap
         for (size_t i = 0; i < vert_count; i++)
             indices[i] = i;
 
-        position_attribute.setData(vertices.data(), vert_count);
-        normal_attribute.setData(normals.data(), vert_count);
-        uv_attribute.setData(uvs.data(), vert_count);
+        position_attribute.setData(vertices.data(), static_cast<int>(vert_count));
+        normal_attribute.setData(normals.data(), static_cast<int>(vert_count));
+        uv_attribute.setData(uvs.data(), static_cast<int>(vert_count));
         color_attribute.setData({vert_count, {1, 1, 1, 1}});
 
         MeshShape& shape = mesh.createShape();
-        shape.setIndices(indices.data(), indices.size());
+        shape.setIndices(indices.data(), static_cast<int>(indices.size()));
     }
 }

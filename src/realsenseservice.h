@@ -11,13 +11,9 @@
 namespace nap
 {
 	//////////////////////////////////////////////////////////////////////////
-
     // forward declares
     class RealSenseDevice;
 
-    /**
-     * RealSenseService
-     */
 	class NAPAPI RealSenseService : public Service
 	{
         friend class RealSenseDevice;
@@ -60,33 +56,18 @@ namespace nap
 		void shutdown() override;
 
         /**
-         * Check whether device with serial number is present
-         * @param serialNumber
-         * @return true if device is present
+         * Returns true if a device with given serial number is registered
+         * @param serialNumber the serial number to check
+         * @return true if a device with given serial number is registered
          */
         bool hasSerialNumber(const std::string& serialNumber) const;
 
         /**
-         * Returns vector of all serial numbers connected
-         * @return vector of all serial numbers connected
+         * Returns const reference to vector of all serial number of connected realsense devices
+         * @return const reference to vector of all serial number of connected realsense devices
          */
         const std::vector<std::string>& getConnectedSerialNumbers() const{ return mConnectedSerialNumbers; }
 	private:
-        /**
-         * Registers a RealSenseDevice
-         * @param device pointer to RealSenseDevice
-         * @param errorState contains any errors
-         * @return true on success
-         */
-        bool registerDevice(RealSenseDevice* device, utility::ErrorState& errorState);
-
-        /**
-         * Removes a RealSenseDevice
-         * @param device pointer to RealSenseDevice
-         */
-        void removeDevice(RealSenseDevice* device);
-
-        std::vector<RealSenseDevice*> mDevices;
         std::vector<std::string> mConnectedSerialNumbers;
 	};
 }

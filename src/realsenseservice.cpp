@@ -30,9 +30,7 @@ namespace nap
 
 	RealSenseService::RealSenseService(ServiceConfiguration* configuration) :
 		Service(configuration)
-	{
-
-	}
+	{ }
 
 
 	RealSenseService::~RealSenseService()
@@ -90,32 +88,6 @@ namespace nap
 	}
 
 
-    bool RealSenseService::registerDevice(nap::RealSenseDevice *device, utility::ErrorState& errorState)
-    {
-        auto it = std::find(mDevices.begin(), mDevices.end(), device);
-        if(it != mDevices.end())
-        {
-            errorState.fail("Device already registered");
-            return false;
-        }
-        for(auto* other : mDevices)
-        {
-            if(!other->mSerial.empty() && !device->mSerial.empty())
-            {
-                if(other->mSerial==device->mSerial)
-                {
-                    errorState.fail(utility::stringFormat("Device with serial %s already registered", device->mSerial.c_str()));
-                    return false;
-                }
-            }
-        }
-
-        mDevices.emplace_back(device);
-
-        return true;
-    }
-
-
     bool RealSenseService::hasSerialNumber(const std::string& serialNumber) const
     {
         auto it = std::find_if(mConnectedSerialNumbers.begin(), mConnectedSerialNumbers.end(), [this, serialNumber](const std::string& other)
@@ -123,13 +95,5 @@ namespace nap
             return other == serialNumber;
         });
         return it != mConnectedSerialNumbers.end();
-    }
-
-
-    void RealSenseService::removeDevice(nap::RealSenseDevice *device)
-    {
-        auto it = std::find(mDevices.begin(), mDevices.end(), device);
-        assert(it != mDevices.end()); // device does not exist
-        mDevices.erase(it);
     }
 }

@@ -4,7 +4,7 @@
 #include <rect.h>
 #include <renderablemeshcomponent.h>
 
-#include "realsenserenderframescomponent.h"
+#include "realsenserenderframecomponent.h"
 #include "realsenseframesetlistenercomponent.h"
 #include "pointcloudmesh.h"
 
@@ -12,12 +12,14 @@ namespace nap
 {
     //////////////////////////////////////////////////////////////////////////
 
+    // forward declares
     class RealSenseDevice;
     class RealSenseRenderPointCloudComponentInstance;
     class RenderService;
 
     /**
      * RealSenseRenderPointCloudComponent
+     * RenderableMesh component that renders a pointcloud
      */
     class NAPAPI RealSenseRenderPointCloudComponent : public RenderableMeshComponent
     {
@@ -34,22 +36,26 @@ namespace nap
          */
         virtual ~RealSenseRenderPointCloudComponent();
 
-        ERealSenseStreamType mCameraIntrinsicsStreamType = ERealSenseStreamType::REALSENSE_STREAMTYPE_DEPTH;
-        ResourcePtr<RealSenseDevice> mDevice; ///< Property: 'Device' the device this component renders the point cloud from
-        ComponentPtr<TransformComponent> mCameraTransform; ///< Property: 'CameraTransform' the camera transform
-        ComponentPtr<RealSenseRenderFramesComponent> mFramesRenderer; ///< Property: 'FramesRenderer'
-        float mPointSize = 1.0f; ///< Property: 'PointSize'
-        float mMaxDistance = 5.0f; ///< Property: 'MaxDistance'
+        // Properties
+        ResourcePtr<RealSenseDevice> mDevice; ///< Property: 'Device' the device of which to extract the pointcloud
+        ComponentPtr<TransformComponent> mCameraTransform; ///< Property: 'CameraTransform' the camera rendering the pointcloud
+        ComponentPtr<RealSenseRenderFrameComponent> mDepthRenderer; ///< Property: 'DepthRenderer' the render frame component that renders the depth frame into a texture
+        ComponentPtr<RealSenseRenderFrameComponent> mColorRenderer; ///< Property: 'ColorRenderer' the render frame component that renders the color frame into a texture
+        float mPointSize = 1.0f; ///< Property: 'PointSize' size of the point cloud points
     };
 
+    /**
+     * RealSenseRenderPointCloudComponentInstance
+     * RenderableMeshComponentInstance that renders a pointcloud
+     */
     class NAPAPI RealSenseRenderPointCloudComponentInstance : public RenderableMeshComponentInstance
     {
     RTTI_ENABLE(RenderableMeshComponentInstance)
     public:
         /**
          * Constructor
-         * @param entity
-         * @param resource
+         * @param entity reference to entity instance
+         * @param resource reference to component
          */
         RealSenseRenderPointCloudComponentInstance(EntityInstance& entity, Component& resource);
 
@@ -59,7 +65,7 @@ namespace nap
         virtual ~RealSenseRenderPointCloudComponentInstance();
 
         /**
-         * Initialization
+         * Initialization method
          * @param errorState contains any errors
          * @return true on success
          */
@@ -72,21 +78,17 @@ namespace nap
         virtual void update(double deltaTime);
 
         /**
-         *
-         * @param renderTarget
-         * @param commandBuffer
-         * @param viewMatrix
-         * @param projectionMatrix
-         */
+         * Renders the pointcloud
+          */
         void onDraw(nap::IRenderTarget &renderTarget, VkCommandBuffer commandBuffer, const glm::mat4 &viewMatrix, const glm::mat4 &projectionMatrix) override;
     protected:
     private:
         ComponentInstancePtr<TransformComponent> mCameraTransform = { this, &RealSenseRenderPointCloudComponent::mCameraTransform };
-        ComponentInstancePtr<RealSenseRenderFramesComponent> mFramesRenderer = { this, &RealSenseRenderPointCloudComponent::mFramesRenderer };
+        ComponentInstancePtr<RealSenseRenderFrameComponent> mDepthRenderer = { this, &RealSenseRenderPointCloudComponent::mDepthRenderer };
+        ComponentInstancePtr<RealSenseRenderFrameComponent> mColorRenderer = { this, &RealSenseRenderPointCloudComponent::mColorRenderer };
         RealSenseDevice* mDevice;
         float mPointSize;
         float mMaxDistance;
         bool mReady = false;
-        ERealSenseStreamType mCameraIntrinsicsStreamType;
     };
 }
