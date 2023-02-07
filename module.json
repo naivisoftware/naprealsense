@@ -17,5 +17,9 @@
       "Windows": [
         "{ROOT}/modules/naprealsense/thirdparty/realsense/msvc/{BUILD_ARCH}/{BUILD_TYPE}"
       ]
-  }
+  },
+  "DataSearchPaths": [
+    "{ROOT}/modules/naprealsense/data",
+    "{ROOT}/modules/{MODULE_NAME}/data"
+  ]
 }

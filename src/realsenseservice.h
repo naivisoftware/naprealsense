@@ -55,16 +55,19 @@ namespace nap
 		 */
 		void shutdown() override;
 
+        /**
+         * Returns true if a device with given serial number is registered
+         * @param serialNumber the serial number to check
+         * @return true if a device with given serial number is registered
+         */
         bool hasSerialNumber(const std::string& serialNumber) const;
 
+        /**
+         * Returns const reference to vector of all serial number of connected realsense devices
+         * @return const reference to vector of all serial number of connected realsense devices
+         */
         const std::vector<std::string>& getConnectedSerialNumbers() const{ return mConnectedSerialNumbers; }
 	private:
-        bool registerDevice(RealSenseDevice* device, utility::ErrorState& errorState);
-
-        void removeDevice(RealSenseDevice* device);
-
-        std::vector<RealSenseDevice*> mDevices;
-
         std::vector<std::string> mConnectedSerialNumbers;
 	};
 }

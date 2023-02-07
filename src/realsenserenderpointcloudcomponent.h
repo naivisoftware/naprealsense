@@ -10,35 +10,65 @@
 
 namespace nap
 {
+    //////////////////////////////////////////////////////////////////////////
+
+    // forward declares
     class RealSenseDevice;
     class RealSenseRenderPointCloudComponentInstance;
     class RenderService;
 
+    /**
+     * RealSenseRenderPointCloudComponent
+     * RenderableMesh component that renders a pointcloud
+     */
     class NAPAPI RealSenseRenderPointCloudComponent : public RenderableMeshComponent
     {
     RTTI_ENABLE(RenderableMeshComponent)
     DECLARE_COMPONENT(RealSenseRenderPointCloudComponent, RealSenseRenderPointCloudComponentInstance)
     public:
+        /**
+         * Constructor
+         */
         RealSenseRenderPointCloudComponent();
 
+        /**
+         * Destructor
+         */
         virtual ~RealSenseRenderPointCloudComponent();
 
-        ResourcePtr<RealSenseDevice> mDevice;
-        ComponentPtr<TransformComponent> mCameraTransform;
-        ComponentPtr<RealSenseRenderFrameComponent> mDepthRenderer;
-        ComponentPtr<RealSenseRenderFrameComponent> mColorRenderer;
-        float mPointSize = 1.0f;
-        float mMaxDistance = 5.0f;
+        // Properties
+        ResourcePtr<RealSenseDevice> mDevice; ///< Property: 'Device' the device of which to extract the pointcloud
+        ComponentPtr<TransformComponent> mCameraTransform; ///< Property: 'CameraTransform' the camera rendering the pointcloud
+        ComponentPtr<RealSenseRenderFrameComponent> mDepthRenderer; ///< Property: 'DepthRenderer' the render frame component that renders the depth frame into a texture
+        ComponentPtr<RealSenseRenderFrameComponent> mColorRenderer; ///< Property: 'ColorRenderer' the render frame component that renders the color frame into a texture
+        float mPointSize = 1.0f; ///< Property: 'PointSize' size of the point cloud points
     };
 
+    /**
+     * RealSenseRenderPointCloudComponentInstance
+     * RenderableMeshComponentInstance that renders a pointcloud
+     */
     class NAPAPI RealSenseRenderPointCloudComponentInstance : public RenderableMeshComponentInstance
     {
     RTTI_ENABLE(RenderableMeshComponentInstance)
     public:
+        /**
+         * Constructor
+         * @param entity reference to entity instance
+         * @param resource reference to component
+         */
         RealSenseRenderPointCloudComponentInstance(EntityInstance& entity, Component& resource);
 
+        /**
+         * Destructor
+         */
         virtual ~RealSenseRenderPointCloudComponentInstance();
 
+        /**
+         * Initialization method
+         * @param errorState contains any errors
+         * @return true on success
+         */
         bool init(utility::ErrorState& errorState);
 
         /**
@@ -47,6 +77,9 @@ namespace nap
          */
         virtual void update(double deltaTime);
 
+        /**
+         * Renders the pointcloud
+          */
         void onDraw(nap::IRenderTarget &renderTarget, VkCommandBuffer commandBuffer, const glm::mat4 &viewMatrix, const glm::mat4 &projectionMatrix) override;
     protected:
     private:

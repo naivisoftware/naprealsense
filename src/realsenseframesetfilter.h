@@ -21,31 +21,67 @@ namespace nap
 {
     //////////////////////////////////////////////////////////////////////////
 
+    /**
+     * RealSenseFrameSetFilter
+     * RealSenseFrameSetFilter base class, overidde process to apply filtering on rs2::framesets
+     */
     class NAPAPI RealSenseFrameSetFilter : public Resource
     {
     RTTI_ENABLE(Resource)
     public:
+        /**
+         * Constructor
+         */
         RealSenseFrameSetFilter();
 
+        /**
+         * Destructor
+         */
         virtual ~RealSenseFrameSetFilter();
 
-        virtual rs2::frameset process(const rs2::frameset& frame) = 0;
+        /**
+         * Process function, returns processed rs2::frameset
+         * @param frameset frameset to filter
+         * @return processed frameset
+         */
+        virtual rs2::frameset process(const rs2::frameset& frameset) = 0;
     private:
     };
 
+    /**
+     * RealSenseFrameSetAlignFilter
+     * RealSenseFrameSetAlignFilter aligns one frame to another frame within the frameset according to given streamtype
+     */
     class NAPAPI RealSenseFrameSetAlignFilter : public RealSenseFrameSetFilter
     {
     RTTI_ENABLE(RealSenseFrameSetFilter)
     public:
+        /**
+         * Constructor
+         */
         RealSenseFrameSetAlignFilter();
 
+        /**
+         * Destructor
+         */
         virtual ~RealSenseFrameSetAlignFilter();
 
+        /**
+         * Process function, returns processed rs2::frameset
+         * @param frameset frameset to filter
+         * @return processed frameset
+         */
         rs2::frameset process(const rs2::frameset& frameset) override;
 
+        /**
+         * Initialization method
+         * @param errorState contains any errors
+         * @return true on success
+         */
         bool init(utility::ErrorState& errorState) override;
 
-        ERealSenseStreamType mStreamType = ERealSenseStreamType::REALSENSE_STREAMTYPE_DEPTH;
+        // Properties
+        ERealSenseStreamType mStreamType = ERealSenseStreamType::REALSENSE_STREAMTYPE_DEPTH; ///< Property: 'Align To' StreamType to align frames to
     private:
         struct Impl;
         std::unique_ptr<Impl> mImpl;

@@ -21,6 +21,10 @@ RTTI_END_CLASS
 
 namespace nap
 {
+    //////////////////////////////////////////////////////////////////////////
+    // RealSenseDevice::Impl
+    //////////////////////////////////////////////////////////////////////////
+
     struct RealSenseDevice::Impl
     {
     public:
@@ -30,23 +34,30 @@ namespace nap
         // Frame queue
         rs2::frame_queue mFrameQueue;
 
+        // Pipe configuration
         rs2::config mConfig;
     };
 
-    RealSenseDevice::RealSenseDevice(RealSenseService &service) : mService(service)
-    {
-    }
+    //////////////////////////////////////////////////////////////////////////
+    // RealSenseDevice
+    //////////////////////////////////////////////////////////////////////////
 
-    RealSenseDevice::~RealSenseDevice(){}
+    RealSenseDevice::RealSenseDevice(RealSenseService &service) : mService(service)
+    {}
+
+
+    RealSenseDevice::~RealSenseDevice() = default;
 
 
     bool RealSenseDevice::start(utility::ErrorState &errorState)
     {
         if(!mRun.load())
         {
+            // create implementation and framequeue
             mImplementation = std::make_unique<Impl>();
             mImplementation->mFrameQueue = rs2::frame_queue(mMaxFrameSize);
 
+            // Check if serial is available
             if(!mSerial.empty())
             {
                 if(!errorState.check(mService.hasSerialNumber(mSerial),
@@ -54,85 +65,88 @@ namespace nap
                     return false;
             }
 
-           if(!mService.registerDevice(this, errorState))
-               return false;
-
+            // set all streams in config
             std::vector<ERealSenseStreamType> stream_types;
-            for(const auto& stream : mStreams)
+            for(const auto &stream: mStreams)
             {
+                // check for duplicate stream descriptions
                 auto stream_type = stream->mStream;
                 if(std::find_if(stream_types.begin(),
                                 stream_types.end(),
                                 [stream_type](ERealSenseStreamType other)
-                                    { return stream_type == other; }) != stream_types.end())
+                                { return stream_type == other; }) != stream_types.end())
                 {
                     errorState.fail("Cannot open multiple streams of the same stream type!");
                     return false;
                 }
-
                 stream_types.emplace_back(stream_type);
 
-                rs2_stream rs2_stream_type      = static_cast<rs2_stream>(stream->mStream);
-                rs2_format rs2_stream_format    = static_cast<rs2_format>(stream->mFormat);
+                // enable stream in config
+                auto rs2_stream_type = static_cast<rs2_stream>(stream->mStream);
+                auto rs2_stream_format = static_cast<rs2_format>(stream->mFormat);
                 mImplementation->mConfig.enable_stream(rs2_stream_type, rs2_stream_format);
             }
 
-            //
-
+            // set serial in config
             if(!mSerial.empty())
                 mImplementation->mConfig.enable_device(mSerial);
 
             try
             {
+                // open pipe
                 mImplementation->mPipe.start(mImplementation->mConfig);
 
-                for(auto& stream : mStreams)
+                // fetch camera intrinsics for each stream type
+                for(auto &stream: mStreams)
                 {
                     if(stream->mStream == ERealSenseStreamType::REALSENSE_STREAMTYPE_COLOR)
                     {
-                        auto intrincics_rs2 = mImplementation->mPipe
-                                                    .get_active_profile()
-                                                    .get_stream(static_cast<rs2_stream>(stream->mStream))
-                                                    .as<rs2::video_stream_profile>()
-                                                    .get_intrinsics();
+                        auto intrinsics_rs2 = mImplementation->mPipe
+                                .get_active_profile()
+                                .get_stream(static_cast<rs2_stream>(stream->mStream))
+                                .as<rs2::video_stream_profile>()
+                                .get_intrinsics();
 
-                        RealSenseCameraIntrincics intrincics;
-                        intrincics.mHeight = intrincics_rs2.height;
-                        intrincics.mWidth = intrincics_rs2.width;
-                        for(int i = 0 ; i < 5; i++)
+                        RealSenseCameraIntrincics intrinsics{};
+                        intrinsics.mHeight = intrinsics_rs2.height;
+                        intrinsics.mWidth = intrinsics_rs2.width;
+                        for(int i = 0;i < 5;i++)
                         {
-                            intrincics.mCoeffs[i] = intrincics_rs2.coeffs[i];
+                            intrinsics.mCoeffs[i] = intrinsics_rs2.coeffs[i];
                         }
-                        intrincics.mFX = intrincics_rs2.fx;
-                        intrincics.mFY = intrincics_rs2.fy;
-                        intrincics.mPPX = intrincics_rs2.ppx;
-                        intrincics.mPPY = intrincics_rs2.ppy;
-                        intrincics.mModel = static_cast<ERealSenseDistortionModels>(intrincics_rs2.model);
-                        mCameraIntrinsics.emplace(ERealSenseStreamType::REALSENSE_STREAMTYPE_COLOR, intrincics);
+                        intrinsics.mFX = intrinsics_rs2.fx;
+                        intrinsics.mFY = intrinsics_rs2.fy;
+                        intrinsics.mPPX = intrinsics_rs2.ppx;
+                        intrinsics.mPPY = intrinsics_rs2.ppy;
+                        intrinsics.mModel = static_cast<ERealSenseDistortionModels>(intrinsics_rs2.model);
+                        mCameraIntrinsics.emplace(ERealSenseStreamType::REALSENSE_STREAMTYPE_COLOR, intrinsics);
                     }else if(stream->mStream == ERealSenseStreamType::REALSENSE_STREAMTYPE_DEPTH)
                     {
-                        auto intrincics_rs2 = mImplementation->mPipe
-                            .get_active_profile()
-                            .get_stream(static_cast<rs2_stream>(stream->mStream))
-                            .as<rs2::video_stream_profile>()
-                            .get_intrinsics();
+                        auto intrinsics_rs2 = mImplementation->mPipe
+                                .get_active_profile()
+                                .get_stream(static_cast<rs2_stream>(stream->mStream))
+                                .as<rs2::video_stream_profile>()
+                                .get_intrinsics();
 
-                        RealSenseCameraIntrincics intrincics;
-                        intrincics.mHeight = intrincics_rs2.height;
-                        intrincics.mWidth = intrincics_rs2.width;
-                        for(int i = 0 ; i < 5; i++)
+                        RealSenseCameraIntrincics intrinsics{};
+                        intrinsics.mHeight = intrinsics_rs2.height;
+                        intrinsics.mWidth = intrinsics_rs2.width;
+                        for(int i = 0;i < 5;i++)
                         {
-                            intrincics.mCoeffs[i] = intrincics_rs2.coeffs[i];
+                            intrinsics.mCoeffs[i] = intrinsics_rs2.coeffs[i];
                         }
-                        intrincics.mFX = intrincics_rs2.fx;
-                        intrincics.mFY = intrincics_rs2.fy;
-                        intrincics.mPPX = intrincics_rs2.ppx;
-                        intrincics.mPPY = intrincics_rs2.ppy;
-                        intrincics.mModel = static_cast<ERealSenseDistortionModels>(intrincics_rs2.model);
-                        mCameraIntrinsics.emplace(ERealSenseStreamType::REALSENSE_STREAMTYPE_DEPTH, intrincics);
+                        intrinsics.mFX = intrinsics_rs2.fx;
+                        intrinsics.mFY = intrinsics_rs2.fy;
+                        intrinsics.mPPX = intrinsics_rs2.ppx;
+                        intrinsics.mPPY = intrinsics_rs2.ppy;
+                        intrinsics.mModel = static_cast<ERealSenseDistortionModels>(intrinsics_rs2.model);
+                        mCameraIntrinsics.emplace(ERealSenseStreamType::REALSENSE_STREAMTYPE_DEPTH, intrinsics);
+
+                        mDepthScale = mImplementation->mPipe.get_active_profile()
+                                .get_device().first<rs2::depth_sensor>()
+                                .get_depth_scale();
                     }
                 }
-
             }catch(const rs2::error& e)
             {
                 errorState.fail(utility::stringFormat("RealSense error calling %s(%s)\n     %s,",
@@ -148,7 +162,7 @@ namespace nap
             }
 
             mRun.store(true);
-            mCaptureTask = std::async(std::launch::async, std::bind(&RealSenseDevice::process, this));
+            mCaptureTask = std::async(std::launch::async, [this] { process(); });
 
             return true;
         }
@@ -161,8 +175,7 @@ namespace nap
 
     float RealSenseDevice::getDepthScale() const
     {
-        auto dpth = mImplementation->mPipe.get_active_profile().get_device().first<rs2::depth_sensor>();
-        return dpth.get_depth_scale();
+        return mDepthScale;
     }
 
 
@@ -175,8 +188,6 @@ namespace nap
                 mCaptureTask.wait();
 
             mImplementation->mPipe.stop();
-
-            mService.removeDevice(this);
         }
     }
 
@@ -186,15 +197,9 @@ namespace nap
     }
 
 
-    void RealSenseDevice::update(double deltaTime)
-    {
-    }
-
-
     void RealSenseDevice::addFrameSetListener(RealSenseFrameSetListenerComponentInstance* frameSetListener)
     {
-        auto it = std::find(mFrameSetListeners.begin(), mFrameSetListeners.end(), frameSetListener);
-        assert(it == mFrameSetListeners.end()); // device already exists
+        assert(std::find(mFrameSetListeners.begin(), mFrameSetListeners.end(), frameSetListener) == mFrameSetListeners.end()); // device already exists
         mFrameSetListeners.emplace_back(frameSetListener);
     }
 

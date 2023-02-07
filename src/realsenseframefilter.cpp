@@ -5,19 +5,16 @@
 #include <rs.hpp>
 
 RTTI_BEGIN_CLASS_NO_DEFAULT_CONSTRUCTOR(nap::RealSenseFrameFilter)
-
 RTTI_END_CLASS
 
 RTTI_BEGIN_CLASS(nap::RealSenseSpatialFilter)
-        RTTI_PROPERTY("Cutoff", &nap::RealSenseSpatialFilter::mCutoff, nap::rtti::EPropertyMetaData::Default)
+    RTTI_PROPERTY("Magnitude", &nap::RealSenseSpatialFilter::mMagnitude, nap::rtti::EPropertyMetaData::Default)
+    RTTI_PROPERTY("SmoothAlpha", &nap::RealSenseSpatialFilter::mSmoothAlpha, nap::rtti::EPropertyMetaData::Default)
+    RTTI_PROPERTY("SmoothDelta", &nap::RealSenseSpatialFilter::mSmoothDelta, nap::rtti::EPropertyMetaData::Default)
 RTTI_END_CLASS
 
 RTTI_BEGIN_CLASS(nap::RealSenseDecFilter)
         RTTI_PROPERTY("Magnitude", &nap::RealSenseDecFilter::mMagnitude, nap::rtti::EPropertyMetaData::Default)
-RTTI_END_CLASS
-
-RTTI_BEGIN_CLASS(nap::RealSenseDisparityFilter)
-        RTTI_PROPERTY("ToDisparity", &nap::RealSenseDisparityFilter::mToDisparity, nap::rtti::EPropertyMetaData::Default)
 RTTI_END_CLASS
 
 RTTI_BEGIN_CLASS(nap::RealSenseColorizeFilter)
@@ -25,13 +22,18 @@ RTTI_END_CLASS
 
 namespace nap
 {
-    RealSenseFrameFilter::RealSenseFrameFilter(){}
+    //////////////////////////////////////////////////////////////////////////
+    // RealSenseFrameFilter
+    //////////////////////////////////////////////////////////////////////////
 
-    RealSenseFrameFilter::~RealSenseFrameFilter(){}
+    RealSenseFrameFilter::RealSenseFrameFilter() = default;
 
-    RealSenseSpatialFilter::RealSenseSpatialFilter(){}
 
-    RealSenseSpatialFilter::~RealSenseSpatialFilter(){}
+    RealSenseFrameFilter::~RealSenseFrameFilter() = default;
+
+    //////////////////////////////////////////////////////////////////////////
+    // RealSenseSpatialFilter::Impl
+    //////////////////////////////////////////////////////////////////////////
 
     struct RealSenseSpatialFilter::Impl
     {
@@ -39,12 +41,29 @@ namespace nap
         rs2::spatial_filter mSpatFilter;
     };
 
+    //////////////////////////////////////////////////////////////////////////
+    // RealSenseSpatialFilter
+    //////////////////////////////////////////////////////////////////////////
+
+    RealSenseSpatialFilter::RealSenseSpatialFilter() = default;
+
+
+    RealSenseSpatialFilter::~RealSenseSpatialFilter() = default;
+
+
     bool RealSenseSpatialFilter::init(utility::ErrorState &errorState)
     {
         mImpl = std::make_unique<Impl>();
-        mImpl->mSpatFilter.set_option(RS2_OPTION_FILTER_MAGNITUDE, 2.0f);
-        mImpl->mSpatFilter.set_option(RS2_OPTION_FILTER_SMOOTH_ALPHA, 0.5f);
-        mImpl->mSpatFilter.set_option(RS2_OPTION_FILTER_SMOOTH_DELTA, 20.0f);
+        try
+        {
+            mImpl->mSpatFilter.set_option(RS2_OPTION_FILTER_MAGNITUDE, mMagnitude);
+            mImpl->mSpatFilter.set_option(RS2_OPTION_FILTER_SMOOTH_ALPHA, mSmoothAlpha);
+            mImpl->mSpatFilter.set_option(RS2_OPTION_FILTER_SMOOTH_DELTA, mSmoothDelta);
+        }catch(std::exception& e)
+        {
+            errorState.fail(e.what());
+            return false;
+        }
 
         return true;
     }
@@ -54,9 +73,9 @@ namespace nap
         return mImpl->mSpatFilter.filter::process(frame);
     }
 
-    RealSenseDecFilter::RealSenseDecFilter(){}
-
-    RealSenseDecFilter::~RealSenseDecFilter(){}
+    //////////////////////////////////////////////////////////////////////////
+    // RealSenseDecFilter::Impl
+    //////////////////////////////////////////////////////////////////////////
 
     struct RealSenseDecFilter::Impl
     {
@@ -64,10 +83,28 @@ namespace nap
         rs2::decimation_filter mDecFilter;
     };
 
+    //////////////////////////////////////////////////////////////////////////
+    // RealSenseDecFilter
+    //////////////////////////////////////////////////////////////////////////
+
+    RealSenseDecFilter::RealSenseDecFilter() = default;
+
+
+    RealSenseDecFilter::~RealSenseDecFilter() = default;
+
+
     bool RealSenseDecFilter::init(utility::ErrorState &errorState)
     {
         mImpl = std::make_unique<Impl>();
-        mImpl->mDecFilter.set_option(RS2_OPTION_FILTER_MAGNITUDE, mMagnitude);
+        try
+        {
+            mImpl->mDecFilter.set_option(RS2_OPTION_FILTER_MAGNITUDE, mMagnitude);
+        }catch(std::exception& e)
+        {
+            errorState.fail(e.what());
+            return false;
+        }
+
         return true;
     }
 
@@ -76,9 +113,9 @@ namespace nap
         return mImpl->mDecFilter.filter::process(frame);
     }
 
-    RealSenseColorizeFilter::RealSenseColorizeFilter(){}
-
-    RealSenseColorizeFilter::~RealSenseColorizeFilter(){}
+    //////////////////////////////////////////////////////////////////////////
+    // RealSenseColorizeFilter::Impl
+    //////////////////////////////////////////////////////////////////////////
 
     struct RealSenseColorizeFilter::Impl
     {
@@ -86,34 +123,22 @@ namespace nap
         rs2::colorizer mColorizer;
     };
 
-    RealSenseDisparityFilter::RealSenseDisparityFilter(){}
+    //////////////////////////////////////////////////////////////////////////
+    // RealSenseDecFilter
+    //////////////////////////////////////////////////////////////////////////
 
-    RealSenseDisparityFilter::~RealSenseDisparityFilter(){}
+    RealSenseColorizeFilter::RealSenseColorizeFilter() = default;
 
-    struct RealSenseDisparityFilter::Impl
-    {
-    public:
-        rs2::disparity_transform mDisparityTransform;
-    };
 
-    bool RealSenseDisparityFilter::init(utility::ErrorState &errorState)
-    {
-        mImpl = std::make_unique<Impl>();
-        mImpl->mDisparityTransform = rs2::disparity_transform(mToDisparity);
+    RealSenseColorizeFilter::~RealSenseColorizeFilter() = default;
 
-        return true;
-    }
-
-    rs2::frame RealSenseDisparityFilter::process(const rs2::frame& frame)
-    {
-        return mImpl->mDisparityTransform.filter::process(frame);
-    }
 
     bool RealSenseColorizeFilter::init(utility::ErrorState &errorState)
     {
         mImpl = std::make_unique<Impl>();
         return true;
     }
+
 
     rs2::frame RealSenseColorizeFilter::process(const rs2::frame& frame)
     {

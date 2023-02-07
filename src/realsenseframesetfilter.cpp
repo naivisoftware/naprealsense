@@ -12,29 +12,52 @@ RTTI_END_CLASS
 
 namespace nap
 {
+    //////////////////////////////////////////////////////////////////////////
+    // RealSenseFrameSetFilter
+    //////////////////////////////////////////////////////////////////////////
+
     RealSenseFrameSetFilter::RealSenseFrameSetFilter(){}
 
+
     RealSenseFrameSetFilter::~RealSenseFrameSetFilter(){}
+
+    //////////////////////////////////////////////////////////////////////////
+    // RealSenseFrameSetAlignFilter::Impl
+    //////////////////////////////////////////////////////////////////////////
 
     struct RealSenseFrameSetAlignFilter::Impl
     {
     public:
         Impl(rs2_stream streamType) :
-            mAlign(streamType){}
+                mAlign(streamType){}
 
         rs2::align mAlign;
     };
 
+    //////////////////////////////////////////////////////////////////////////
+    // RealSenseFrameSetAlignFilter
+    //////////////////////////////////////////////////////////////////////////
+
     RealSenseFrameSetAlignFilter::RealSenseFrameSetAlignFilter(){}
+
 
     RealSenseFrameSetAlignFilter::~RealSenseFrameSetAlignFilter(){}
 
+
     bool RealSenseFrameSetAlignFilter::init(utility::ErrorState &errorState)
     {
-        mImpl = std::make_unique<Impl>(static_cast<rs2_stream>(mStreamType));
+        try
+        {
+            mImpl = std::make_unique<Impl>(static_cast<rs2_stream>(mStreamType));
+        }catch(std::exception& e)
+        {
+            errorState.fail(e.what());
+            return false;
+        }
 
         return true;
     }
+
 
     rs2::frameset RealSenseFrameSetAlignFilter::process(const rs2::frameset& frameset)
     {

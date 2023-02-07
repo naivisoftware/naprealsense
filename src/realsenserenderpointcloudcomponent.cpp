@@ -9,12 +9,11 @@
 #include <rs.hpp>
 
 RTTI_BEGIN_CLASS(nap::RealSenseRenderPointCloudComponent)
-        RTTI_PROPERTY("Device", &nap::RealSenseRenderPointCloudComponent::mDevice, nap::rtti::EPropertyMetaData::Required)
-        RTTI_PROPERTY("CameraTransform", &nap::RealSenseRenderPointCloudComponent::mCameraTransform, nap::rtti::EPropertyMetaData::Required)
-        RTTI_PROPERTY("PointSize", &nap::RealSenseRenderPointCloudComponent::mPointSize, nap::rtti::EPropertyMetaData::Default)
-        RTTI_PROPERTY("MaxDistance", &nap::RealSenseRenderPointCloudComponent::mMaxDistance, nap::rtti::EPropertyMetaData::Default)
-        RTTI_PROPERTY("DepthRenderer", &nap::RealSenseRenderPointCloudComponent::mDepthRenderer, nap::rtti::EPropertyMetaData::Required)
-        RTTI_PROPERTY("ColorRenderer", &nap::RealSenseRenderPointCloudComponent::mColorRenderer, nap::rtti::EPropertyMetaData::Required)
+    RTTI_PROPERTY("Device", &nap::RealSenseRenderPointCloudComponent::mDevice, nap::rtti::EPropertyMetaData::Required)
+    RTTI_PROPERTY("CameraTransform", &nap::RealSenseRenderPointCloudComponent::mCameraTransform, nap::rtti::EPropertyMetaData::Required)
+    RTTI_PROPERTY("PointSize", &nap::RealSenseRenderPointCloudComponent::mPointSize, nap::rtti::EPropertyMetaData::Default)
+    RTTI_PROPERTY("DepthRenderer", &nap::RealSenseRenderPointCloudComponent::mDepthRenderer, nap::rtti::EPropertyMetaData::Required)
+    RTTI_PROPERTY("ColorRenderer", &nap::RealSenseRenderPointCloudComponent::mColorRenderer, nap::rtti::EPropertyMetaData::Required)
 RTTI_END_CLASS
 
 RTTI_BEGIN_CLASS_NO_DEFAULT_CONSTRUCTOR(nap::RealSenseRenderPointCloudComponentInstance)
@@ -23,9 +22,18 @@ RTTI_END_CLASS
 
 namespace nap
 {
+    //////////////////////////////////////////////////////////////////////////
+    // RealSenseRenderPointCloudComponent
+    //////////////////////////////////////////////////////////////////////////
+
     RealSenseRenderPointCloudComponent::RealSenseRenderPointCloudComponent(){}
 
+
     RealSenseRenderPointCloudComponent::~RealSenseRenderPointCloudComponent(){}
+
+    //////////////////////////////////////////////////////////////////////////
+    // RealSenseRenderPointCloudComponentInstance
+    //////////////////////////////////////////////////////////////////////////
 
     RealSenseRenderPointCloudComponentInstance::RealSenseRenderPointCloudComponentInstance(EntityInstance& entity, Component& resource)
         : RenderableMeshComponentInstance(entity, resource)
@@ -47,7 +55,6 @@ namespace nap
         auto* resource = getComponent<RealSenseRenderPointCloudComponent>();
         mDevice = resource->mDevice.get();
         mPointSize = resource->mPointSize;
-        mMaxDistance = resource->mMaxDistance;
 
         return true;
     }
@@ -92,12 +99,10 @@ namespace nap
         ubo->getOrCreateUniform<UniformFloatArrayInstance>("coeffs")->setValue(intrincics.mCoeffs[3], 3);
         ubo->getOrCreateUniform<UniformFloatArrayInstance>("coeffs")->setValue(intrincics.mCoeffs[4], 4);
 
-        //
         ubo = material_instance.getOrCreateUniform("UBO");
         ubo->getOrCreateUniform<UniformVec3Instance>("camera_world_position")->setValue(math::extractPosition(mCameraTransform->getGlobalTransform()));
         ubo->getOrCreateUniform<UniformFloatInstance>("realsense_depth_scale")->setValue(depth_scale);
         ubo->getOrCreateUniform<UniformFloatInstance>("point_size_scale")->setValue(mPointSize);
         ubo->getOrCreateUniform<UniformFloatInstance>("max_distance")->setValue(mMaxDistance);
-
     }
 }

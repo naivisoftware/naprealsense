@@ -8,32 +8,60 @@
 
 namespace nap
 {
+    //////////////////////////////////////////////////////////////////////////
+
+    /**
+     * PointCloudMesh
+     * A mesh that consists of points. Amount of points is determined by rows and columns
+     */
     class NAPAPI PointCloudMesh : public IMesh
     {
     RTTI_ENABLE(IMesh)
     public:
+        /**
+         * Constructor
+         * @param core reference to NAP core
+         */
         PointCloudMesh(Core& core);
 
+        /**
+         * Destructor
+         */
         virtual ~PointCloudMesh();
 
+        /**
+         * Initialization method, creates mesh
+         * @param errorState contains any error
+         * @return true on success
+         */
         virtual bool init(utility::ErrorState& errorState) override;
 
-        bool setup(utility::ErrorState& error);
-
+        /**
+         * Returns MeshInstance reference
+         * @return MeshInstance reference
+         */
         virtual MeshInstance& getMeshInstance() override					{ return *mMeshInstance; }
 
+        /**
+         * Returns const MeshInstance reference
+         * @return const MeshInstance reference
+         */
         virtual const MeshInstance& getMeshInstance() const override		{ return *mMeshInstance; }
 
         // property: the size of the plane
-        ECullMode		mCullMode		= ECullMode::None;					///< Property: 'CullMode' Plane cull mode, defaults to no culling
-        int             mRows           = 100;
-        int             mColums         = 100;
-        float           mSize           = 1.0f;
+        ECullMode		mCullMode		= ECullMode::None;	///< Property: 'CullMode' Plane cull mode, defaults to no culling
+        int             mRows           = 100;              ///< Property: 'Rows' Amount of rows
+        int             mColums         = 100;              ///< Property: 'Columns' Amount of columns
+        float           mSize           = 1.0f;             ///< Property: 'Size' size
 
+        /**
+         * Constructs pointcloud and updates mesh
+         * @param mesh reference to MeshInstance
+         */
         void constructPointCloud(nap::MeshInstance& mesh);
     private:
-        EPolygonMode	mPolygonMode	= EPolygonMode::Point;		///< Property: 'PolygonMode' Polygon rasterization mode (fill, line, points)
-        EMemoryUsage	mUsage			= EMemoryUsage::Static;		///< Property: 'Usage' If the plane is uploaded once or frequently updated.
+        EPolygonMode	mPolygonMode	= EPolygonMode::Point;
+        EMemoryUsage	mUsage			= EMemoryUsage::Static;
 
         RenderService* mRenderService;
         std::unique_ptr<MeshInstance> mMeshInstance;

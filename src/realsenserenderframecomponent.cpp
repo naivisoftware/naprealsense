@@ -16,9 +16,18 @@ RTTI_END_CLASS
 
 namespace nap
 {
+    //////////////////////////////////////////////////////////////////////////
+    // RealSenseRenderFrameComponent
+    //////////////////////////////////////////////////////////////////////////
+
     RealSenseRenderFrameComponent::RealSenseRenderFrameComponent(){}
 
+
     RealSenseRenderFrameComponent::~RealSenseRenderFrameComponent(){}
+
+    //////////////////////////////////////////////////////////////////////////
+    // RealSenseRenderFrameComponentInstance::Impl
+    //////////////////////////////////////////////////////////////////////////
 
     struct RealSenseRenderFrameComponentInstance::Impl
     {
@@ -27,13 +36,19 @@ namespace nap
         rs2::frame_queue mFrameQueue;
     };
 
+    //////////////////////////////////////////////////////////////////////////
+    // RealSenseRenderFrameComponentInstance
+    //////////////////////////////////////////////////////////////////////////
+
     RealSenseRenderFrameComponentInstance::RealSenseRenderFrameComponentInstance(EntityInstance& entity, Component& resource) :
         RealSenseFrameSetListenerComponentInstance(entity, resource)
     {
 
     }
 
+
     RealSenseRenderFrameComponentInstance::~RealSenseRenderFrameComponentInstance(){}
+
 
     bool RealSenseRenderFrameComponentInstance::onInit(utility::ErrorState &errorState)
     {

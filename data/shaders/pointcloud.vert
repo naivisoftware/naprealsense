@@ -4,20 +4,6 @@
 
 #version 450 core
 
-
-/**
-typedef enum rs2_distortion
-{
-RS2_DISTORTION_NONE
-RS2_DISTORTION_MODIFIED_BROWN_CONRADY, 1
-RS2_DISTORTION_INVERSE_BROWN_CONRADY , 2
-RS2_DISTORTION_FTHETA                , 3
-RS2_DISTORTION_BROWN_CONRADY         , 4
-RS2_DISTORTION_KANNALA_BRANDT4       , 5
-RS2_DISTORTION_COUNT
-} rs2_distortion;
-*/
-
 uniform nap
 {
 	mat4 projectionMatrix;
