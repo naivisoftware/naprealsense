@@ -44,17 +44,6 @@ namespace nap
 		 */
 		virtual bool init(nap::utility::ErrorState& errorState) override;
 
-		/**
-		 * updates any tweens
-		 * @param deltaTime deltaTime
-		 */
-		virtual void update(double deltaTime) override;
-
-		/**
-		 * called when service is shutdown, deletes all tweens
-		 */
-		void shutdown() override;
-
         /**
          * Returns true if a device with given serial number is registered
          * @param serialNumber the serial number to check

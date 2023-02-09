@@ -23,13 +23,16 @@ RTTI_END_CLASS
 
 namespace nap
 {
+    //////////////////////////////////////////////////////////////////////////
+    // RealSenseService
+    //////////////////////////////////////////////////////////////////////////
+
 	RealSenseService::RealSenseService(ServiceConfiguration* configuration) :
 		Service(configuration)
 	{ }
 
 
-	RealSenseService::~RealSenseService()
-	{ }
+	RealSenseService::~RealSenseService() = default;
 
 
 	void RealSenseService::registerObjectCreators(rtti::Factory& factory)
@@ -56,16 +59,6 @@ namespace nap
         }
 
 		return true;
-	}
-
-
-	void RealSenseService::update(double deltaTime)
-	{
-	}
-
-
-	void RealSenseService::shutdown()
-	{
 	}
 
 

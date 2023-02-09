@@ -10,7 +10,6 @@
 
 RTTI_BEGIN_CLASS(nap::RealSenseRenderPointCloudComponent)
     RTTI_PROPERTY("Device", &nap::RealSenseRenderPointCloudComponent::mDevice, nap::rtti::EPropertyMetaData::Required)
-    RTTI_PROPERTY("CameraTransform", &nap::RealSenseRenderPointCloudComponent::mCameraTransform, nap::rtti::EPropertyMetaData::Required)
     RTTI_PROPERTY("PointSize", &nap::RealSenseRenderPointCloudComponent::mPointSize, nap::rtti::EPropertyMetaData::Default)
     RTTI_PROPERTY("DepthRenderer", &nap::RealSenseRenderPointCloudComponent::mDepthRenderer, nap::rtti::EPropertyMetaData::Required)
     RTTI_PROPERTY("ColorRenderer", &nap::RealSenseRenderPointCloudComponent::mColorRenderer, nap::rtti::EPropertyMetaData::Required)
@@ -26,10 +25,10 @@ namespace nap
     // RealSenseRenderPointCloudComponent
     //////////////////////////////////////////////////////////////////////////
 
-    RealSenseRenderPointCloudComponent::RealSenseRenderPointCloudComponent(){}
+    RealSenseRenderPointCloudComponent::RealSenseRenderPointCloudComponent() = default;
 
 
-    RealSenseRenderPointCloudComponent::~RealSenseRenderPointCloudComponent(){}
+    RealSenseRenderPointCloudComponent::~RealSenseRenderPointCloudComponent() = default;
 
     //////////////////////////////////////////////////////////////////////////
     // RealSenseRenderPointCloudComponentInstance
@@ -41,10 +40,7 @@ namespace nap
     }
 
 
-    RealSenseRenderPointCloudComponentInstance::~RealSenseRenderPointCloudComponentInstance()
-    {
-
-    }
+    RealSenseRenderPointCloudComponentInstance::~RealSenseRenderPointCloudComponentInstance() = default;
 
 
     bool RealSenseRenderPointCloudComponentInstance::init(utility::ErrorState& errorState)
@@ -70,39 +66,47 @@ namespace nap
 
     void RealSenseRenderPointCloudComponentInstance::update(double deltaTime)
     {
+        // make sure there is a depth and color texture available
         mReady = mDepthRenderer->isRenderTextureInitialized() && mColorRenderer->isRenderTextureInitialized();
         if(!mReady)
             return;
 
+        // get material instance
         auto& material_instance = getMaterialInstance();
+
+        // assign depth
         auto* depth_sampler = material_instance.getOrCreateSampler<Sampler2DInstance>("depth_texture");
         depth_sampler->setTexture(mDepthRenderer->getRenderTexture());
 
+        // assign rgb
         auto* color_sampler = material_instance.getOrCreateSampler<Sampler2DInstance>("color_texture");
         color_sampler->setTexture(mColorRenderer->getRenderTexture());
 
-        const auto& camera_intrincics = mDevice->getIntrincicsMap();
-        const auto& intrincics = camera_intrincics.find(ERealSenseStreamType::REALSENSE_STREAMTYPE_DEPTH)->second;
+        // obtain camera intrinsics from depth camera
+        const auto& camera_intrinsics = mDevice->getIntrincicsMap();
+        const auto& intrinsics = camera_intrinsics.find(ERealSenseStreamType::REALSENSE_STREAMTYPE_DEPTH)->second;
 
-        auto* ubo = material_instance.getOrCreateUniform("cam_intrinsics");
+        // obtain depth scale
         float depth_scale = mDevice->getDepthScale();
-        ubo->getOrCreateUniform<UniformFloatInstance>("width")->setValue(intrincics.mWidth);
-        ubo->getOrCreateUniform<UniformFloatInstance>("height")->setValue(intrincics.mHeight);
-        ubo->getOrCreateUniform<UniformFloatInstance>("ppx")->setValue(intrincics.mPPX);
-        ubo->getOrCreateUniform<UniformFloatInstance>("ppy")->setValue(intrincics.mPPY);
-        ubo->getOrCreateUniform<UniformFloatInstance>("fx")->setValue(intrincics.mFX);
-        ubo->getOrCreateUniform<UniformFloatInstance>("fy")->setValue(intrincics.mFY);
-        ubo->getOrCreateUniform<UniformIntInstance>("model")->setValue(static_cast<int>(intrincics.mModel));
-        ubo->getOrCreateUniform<UniformFloatArrayInstance>("coeffs")->setValue(intrincics.mCoeffs[0], 0);
-        ubo->getOrCreateUniform<UniformFloatArrayInstance>("coeffs")->setValue(intrincics.mCoeffs[1], 1);
-        ubo->getOrCreateUniform<UniformFloatArrayInstance>("coeffs")->setValue(intrincics.mCoeffs[2], 2);
-        ubo->getOrCreateUniform<UniformFloatArrayInstance>("coeffs")->setValue(intrincics.mCoeffs[3], 3);
-        ubo->getOrCreateUniform<UniformFloatArrayInstance>("coeffs")->setValue(intrincics.mCoeffs[4], 4);
 
+        // obtain camera intrinsics UBO from point cloud shader, assign properties
+        auto* ubo = material_instance.getOrCreateUniform("cam_intrinsics");
+        ubo->getOrCreateUniform<UniformFloatInstance>("width")->setValue(intrinsics.mWidth);
+        ubo->getOrCreateUniform<UniformFloatInstance>("height")->setValue(intrinsics.mHeight);
+        ubo->getOrCreateUniform<UniformFloatInstance>("ppx")->setValue(intrinsics.mPPX);
+        ubo->getOrCreateUniform<UniformFloatInstance>("ppy")->setValue(intrinsics.mPPY);
+        ubo->getOrCreateUniform<UniformFloatInstance>("fx")->setValue(intrinsics.mFX);
+        ubo->getOrCreateUniform<UniformFloatInstance>("fy")->setValue(intrinsics.mFY);
+        ubo->getOrCreateUniform<UniformIntInstance>("model")->setValue(static_cast<int>(intrinsics.mModel));
+        ubo->getOrCreateUniform<UniformFloatArrayInstance>("coeffs")->setValue(intrinsics.mCoeffs[0], 0);
+        ubo->getOrCreateUniform<UniformFloatArrayInstance>("coeffs")->setValue(intrinsics.mCoeffs[1], 1);
+        ubo->getOrCreateUniform<UniformFloatArrayInstance>("coeffs")->setValue(intrinsics.mCoeffs[2], 2);
+        ubo->getOrCreateUniform<UniformFloatArrayInstance>("coeffs")->setValue(intrinsics.mCoeffs[3], 3);
+        ubo->getOrCreateUniform<UniformFloatArrayInstance>("coeffs")->setValue(intrinsics.mCoeffs[4], 4);
+
+        // assign depth scale and point size to shader UBO
         ubo = material_instance.getOrCreateUniform("UBO");
-        ubo->getOrCreateUniform<UniformVec3Instance>("camera_world_position")->setValue(math::extractPosition(mCameraTransform->getGlobalTransform()));
         ubo->getOrCreateUniform<UniformFloatInstance>("realsense_depth_scale")->setValue(depth_scale);
-        ubo->getOrCreateUniform<UniformFloatInstance>("point_size_scale")->setValue(mPointSize);
-        ubo->getOrCreateUniform<UniformFloatInstance>("max_distance")->setValue(mMaxDistance);
+        ubo->getOrCreateUniform<UniformFloatInstance>("point_size")->setValue(mPointSize);
     }
 }

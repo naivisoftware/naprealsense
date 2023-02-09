@@ -38,7 +38,6 @@ namespace nap
 
         // Properties
         ResourcePtr<RealSenseDevice> mDevice; ///< Property: 'Device' the device of which to extract the pointcloud
-        ComponentPtr<TransformComponent> mCameraTransform; ///< Property: 'CameraTransform' the camera rendering the pointcloud
         ComponentPtr<RealSenseRenderFrameComponent> mDepthRenderer; ///< Property: 'DepthRenderer' the render frame component that renders the depth frame into a texture
         ComponentPtr<RealSenseRenderFrameComponent> mColorRenderer; ///< Property: 'ColorRenderer' the render frame component that renders the color frame into a texture
         float mPointSize = 1.0f; ///< Property: 'PointSize' size of the point cloud points
@@ -83,12 +82,10 @@ namespace nap
         void onDraw(nap::IRenderTarget &renderTarget, VkCommandBuffer commandBuffer, const glm::mat4 &viewMatrix, const glm::mat4 &projectionMatrix) override;
     protected:
     private:
-        ComponentInstancePtr<TransformComponent> mCameraTransform = { this, &RealSenseRenderPointCloudComponent::mCameraTransform };
         ComponentInstancePtr<RealSenseRenderFrameComponent> mDepthRenderer = { this, &RealSenseRenderPointCloudComponent::mDepthRenderer };
         ComponentInstancePtr<RealSenseRenderFrameComponent> mColorRenderer = { this, &RealSenseRenderPointCloudComponent::mColorRenderer };
         RealSenseDevice* mDevice;
         float mPointSize;
-        float mMaxDistance;
         bool mReady = false;
     };
 }

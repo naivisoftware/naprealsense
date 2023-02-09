@@ -16,10 +16,10 @@ namespace nap
     // RealSenseFrameSetFilter
     //////////////////////////////////////////////////////////////////////////
 
-    RealSenseFrameSetFilter::RealSenseFrameSetFilter(){}
+    RealSenseFrameSetFilter::RealSenseFrameSetFilter() = default;
 
 
-    RealSenseFrameSetFilter::~RealSenseFrameSetFilter(){}
+    RealSenseFrameSetFilter::~RealSenseFrameSetFilter() = default;
 
     //////////////////////////////////////////////////////////////////////////
     // RealSenseFrameSetAlignFilter::Impl
@@ -38,10 +38,10 @@ namespace nap
     // RealSenseFrameSetAlignFilter
     //////////////////////////////////////////////////////////////////////////
 
-    RealSenseFrameSetAlignFilter::RealSenseFrameSetAlignFilter(){}
+    RealSenseFrameSetAlignFilter::RealSenseFrameSetAlignFilter() = default;
 
 
-    RealSenseFrameSetAlignFilter::~RealSenseFrameSetAlignFilter(){}
+    RealSenseFrameSetAlignFilter::~RealSenseFrameSetAlignFilter() = default;
 
 
     bool RealSenseFrameSetAlignFilter::init(utility::ErrorState &errorState)

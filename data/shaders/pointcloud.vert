@@ -13,10 +13,8 @@ uniform nap
 
 uniform UBO
 {
-	uniform vec3 		camera_world_position;
 	uniform float		realsense_depth_scale;
-	uniform float		point_size_scale;
-	uniform float 		max_distance;
+	uniform float		point_size;
 } ubo;
 
 uniform cam_intrinsics
@@ -134,5 +132,5 @@ void main(void)
 
 	// Pass color and uv's
 	pass_Color = texture(color_texture, in_UV0.xy).rgba;
-	gl_PointSize = ubo.point_size_scale;
+	gl_PointSize = ubo.point_size;
 }

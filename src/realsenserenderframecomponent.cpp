@@ -20,10 +20,10 @@ namespace nap
     // RealSenseRenderFrameComponent
     //////////////////////////////////////////////////////////////////////////
 
-    RealSenseRenderFrameComponent::RealSenseRenderFrameComponent(){}
+    RealSenseRenderFrameComponent::RealSenseRenderFrameComponent() = default;
 
 
-    RealSenseRenderFrameComponent::~RealSenseRenderFrameComponent(){}
+    RealSenseRenderFrameComponent::~RealSenseRenderFrameComponent() = default;
 
     //////////////////////////////////////////////////////////////////////////
     // RealSenseRenderFrameComponentInstance::Impl
@@ -47,7 +47,7 @@ namespace nap
     }
 
 
-    RealSenseRenderFrameComponentInstance::~RealSenseRenderFrameComponentInstance(){}
+    RealSenseRenderFrameComponentInstance::~RealSenseRenderFrameComponentInstance() = default;
 
 
     bool RealSenseRenderFrameComponentInstance::onInit(utility::ErrorState &errorState)

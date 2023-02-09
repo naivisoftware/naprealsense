@@ -28,8 +28,10 @@ namespace nap
         inline constexpr const char* pointcloud = "pointcloud";
     }
 
+
     PointCloudShader::PointCloudShader(Core& core) : Shader(core),
                                                      mRenderService(core.getService<RenderService>()) { }
+
 
 
     bool PointCloudShader::init(utility::ErrorState& errorState)

@@ -168,7 +168,6 @@
                         }
                     },
                     "Device": "RealSenseDevice",
-                    "CameraTransform": "../CameraEntity/CameraTransform",
                     "PointSize": 4.0,
                     "DepthRenderer": "../RealSenseEntity/RenderDepthComponent",
                     "ColorRenderer": "../RealSenseEntity/RenderColorComponent"
@@ -281,25 +280,9 @@
                             "Name": "UBO",
                             "Uniforms": [
                                 {
-                                    "Type": "nap::UniformVec3",
-                                    "mID": "UniformVec3_920d1202",
-                                    "Name": "camera_world_position",
-                                    "Value": {
-                                        "x": 0.0,
-                                        "y": 0.0,
-                                        "z": 0.0
-                                    }
-                                },
-                                {
                                     "Type": "nap::UniformFloat",
                                     "mID": "UniformFloat_5e92bed5",
                                     "Name": "realsense_depth_scale",
-                                    "Value": 0.0
-                                },
-                                {
-                                    "Type": "nap::UniformFloat",
-                                    "mID": "UniformFloat_39d4cb11",
-                                    "Name": "point_size_scale",
                                     "Value": 0.0
                                 }
                             ]
@@ -368,7 +351,8 @@
                             "mID": "RealSenseFrameSetAlignFilter_16cc8a5f",
                             "Align To": "Depth"
                         }
-                    ]
+                    ],
+                    "AllowFailure": false
                 },
                 {
                     "Type": "nap::RenderTexture2D",
