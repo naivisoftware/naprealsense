@@ -17,6 +17,7 @@ RTTI_BEGIN_CLASS_NO_DEFAULT_CONSTRUCTOR(nap::RealSenseDevice)
     RTTI_PROPERTY("MaxFrameSize", &nap::RealSenseDevice::mMaxFrameSize, nap::rtti::EPropertyMetaData::Default)
     RTTI_PROPERTY("Streams", &nap::RealSenseDevice::mStreams, nap::rtti::EPropertyMetaData::Embedded)
     RTTI_PROPERTY("Filters", &nap::RealSenseDevice::mFilters, nap::rtti::EPropertyMetaData::Embedded)
+    RTTI_PROPERTY("AllowFailure", &nap::RealSenseDevice::mAllowFailure, nap::rtti::EPropertyMetaData::Default)
 RTTI_END_CLASS
 
 namespace nap
@@ -51,6 +52,19 @@ namespace nap
 
     bool RealSenseDevice::start(utility::ErrorState &errorState)
     {
+        // error handling utility function
+        auto handle_error = [this, errorState](const std::string& errorString) mutable ->bool
+        {
+            if(mAllowFailure)
+            {
+                nap::Logger::error(errorString);
+                return true;
+            }
+
+            errorState.fail(errorString);
+            return false;
+        };
+
         if(!mRun.load())
         {
             // create implementation and framequeue
@@ -60,9 +74,10 @@ namespace nap
             // Check if serial is available
             if(!mSerial.empty())
             {
-                if(!errorState.check(mService.hasSerialNumber(mSerial),
-                                     utility::stringFormat("Device with serial number %s is not connected", mSerial.c_str())))
-                    return false;
+                if(!mService.hasSerialNumber(mSerial))
+                {
+                    return handle_error(utility::stringFormat("Device with serial number %s is not connected", mSerial.c_str()));
+                }
             }
 
             // set all streams in config
@@ -76,8 +91,7 @@ namespace nap
                                 [stream_type](ERealSenseStreamType other)
                                 { return stream_type == other; }) != stream_types.end())
                 {
-                    errorState.fail("Cannot open multiple streams of the same stream type!");
-                    return false;
+                    return handle_error("Cannot open multiple streams of the same stream type!");
                 }
                 stream_types.emplace_back(stream_type);
 
@@ -149,16 +163,14 @@ namespace nap
                 }
             }catch(const rs2::error& e)
             {
-                errorState.fail(utility::stringFormat("RealSense error calling %s(%s)\n     %s,",
-                                                      e.get_failed_function().c_str(),
-                                                      e.get_failed_args().c_str(),
-                                                      e.what()));
-                return false;
+                return handle_error(utility::stringFormat("RealSense error calling %s(%s)\n     %s,",
+                                                          e.get_failed_function().c_str(),
+                                                          e.get_failed_args().c_str(),
+                                                          e.what()));
             }
             catch(const std::exception& e)
             {
-                errorState.fail(e.what());
-                return false;
+                return handle_error(e.what());
             }
 
             mRun.store(true);
@@ -167,9 +179,7 @@ namespace nap
             return true;
         }
 
-        errorState.fail("RealSenseDevice already started.");
-
-        return false;
+        return handle_error("RealSenseDevice already started.");
     }
 
 

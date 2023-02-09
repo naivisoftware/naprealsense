@@ -106,6 +106,7 @@ namespace nap
         int mMaxFrameSize = 5;  ///< Property: 'MaxFrameSize' maximum frame size of frame queue
         std::vector<ResourcePtr<RealSenseStreamDescription>> mStreams; ///< Property: 'Streams' stream descriptions of streams to fetch from device
         std::vector<ResourcePtr<RealSenseFrameSetAlignFilter>> mFilters; ///< Property: 'Filters' filters applied to frameset before frameset is signalled to any listeners
+        bool mAllowFailure = false; ///< Property: 'AllowFailure' allow failure of this device on initialization
     private:
         /**
          * Threaded process function
