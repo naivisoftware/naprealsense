@@ -1,6 +1,6 @@
 {
     "Type": "nap::ModuleInfo",
-    "mID": "ModuleInfo",
+    "mID": "naprealsense",
     "DemoApp" : "realsense_pointcloud_gpu",
     "RequiredModules": [
 		"napmath",
