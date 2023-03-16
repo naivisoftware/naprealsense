@@ -31,4 +31,4 @@ clone https://github.com/naivisoftware/naprealsense.git
 ## Demo
 
 Renders a pointcloud that is deformed using the `PointCloud` shader of the `naprealsense` module. 
-The PointCloud shader implements the de-projection methods from the realsense SDK, deforming the point cloud mesh completely on the GPU.
+The point cloud shader implements the de-projection methods from the realsense SDK, deforming the point cloud mesh completely on the GPU.
