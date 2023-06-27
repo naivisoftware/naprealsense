@@ -92,6 +92,9 @@ namespace nap
             mImplementation = std::make_unique<Impl>();
             mImplementation->mFrameQueue = rs2::frame_queue(mMaxFrameSize);
 
+            if(!handle_error(mService.registerDevice(this, errorState), "Cannot register device"))
+                return mAllowFailure;
+
             if(!handle_error(!mService.getConnectedSerialNumbers().empty(), "No RealSense devices connected!"))
                 return mAllowFailure;
 
@@ -101,9 +104,6 @@ namespace nap
                                  utility::stringFormat("Device with serial number %s is not connected", mSerial.c_str())))
                     return mAllowFailure;
             }
-
-           if(!handle_error(mService.registerDevice(this, errorState), "Cannot register device"))
-               return mAllowFailure;
 
             std::vector<ERealSenseStreamType> stream_types;
             for(const auto& stream : mStreams)
@@ -187,6 +187,40 @@ namespace nap
     }
 
 
+    bool RealSenseDevice::restart(utility::ErrorState &errorState)
+    {
+        // If we are running, first stop
+        if(mRun.load())
+        {
+            mRun.store(false);
+            if(mCaptureTask.valid())
+                mCaptureTask.wait();
+
+            try
+            {
+                mImplementation->mPipe.stop();
+            }catch(const rs2::error& e)
+            {
+                nap::Logger::error(*this, utility::stringFormat("RealSense error calling %s(%s)\n     %s,",
+                                                                e.get_failed_function().c_str(),
+                                                                e.get_failed_args().c_str(),
+                                                                e.what()));
+
+            }
+            catch(const std::exception& e)
+            {
+                nap::Logger::error(*this, e.what());
+            }
+        }
+
+        // Remove the device for now, will be added again in start
+        mService.removeDevice(this);
+
+        // Start
+        return start(errorState);
+    }
+
+
     float RealSenseDevice::getDepthScale() const
     {
         return mLatestDepthScale.load();
@@ -217,13 +251,14 @@ namespace nap
                 nap::Logger::error(*this, e.what());
             }
 
-            mService.removeDevice(this);
+            mIsConnected = false;
         }
     }
 
     void RealSenseDevice::onDestroy()
     {
         stop();
+        mService.removeDevice(this);
     }
 
 

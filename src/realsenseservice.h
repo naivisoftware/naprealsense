@@ -7,6 +7,9 @@
 // External Includes
 #include <nap/service.h>
 #include <rtti/factory.h>
+#include <nap/timer.h>
+#include <concurrentqueue.h>
+#include <future>
 
 namespace nap
 {
@@ -64,7 +67,7 @@ namespace nap
          * @param serialNumber
          * @return true if device is present
          */
-        bool hasSerialNumber(const std::string& serialNumber) const;
+        bool hasSerialNumber(const std::string& serialNumber);
 
         /**
          * Returns vector of all serial numbers connected
@@ -86,7 +89,20 @@ namespace nap
          */
         void removeDevice(RealSenseDevice* device);
 
-        std::vector<RealSenseDevice*> mDevices;
+        void queryDeviceTask();
+
+        void acquireSerialNumbers(std::vector<std::string>& serials);
+
+        void setSerialNumbers(const std::vector<std::string>& serials);
+
+        std::future<void>		mQueryDevicesTask;
+        std::atomic_bool        mRun = { false };
+        const float mQueryIntervalSeconds = 1.0f;
+        moodycamel::ConcurrentQueue<std::string> mDevicesToRestart;
+        moodycamel::ConcurrentQueue<std::string> mDevicesToStop;
+        std::mutex mMutex;
         std::vector<std::string> mConnectedSerialNumbers;
+
+        std::vector<RealSenseDevice*> mDevices;
 	};
 }

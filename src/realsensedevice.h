@@ -73,6 +73,8 @@ namespace nap
          */
         virtual bool start(utility::ErrorState& errorState) override final;
 
+        bool restart(utility::ErrorState& errorState);
+
         /**
          * Called when device needs to stop
          */
@@ -134,6 +136,7 @@ namespace nap
 
         struct Impl;
         std::unique_ptr<Impl>   mImplementation;
+        std::string mDeviceSerial;
 
         std::vector<RealSenseFrameSetListenerComponentInstance*> mFrameSetListeners;
         std::mutex mFrameSetListenerMutex;
