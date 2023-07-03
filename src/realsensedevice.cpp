@@ -45,6 +45,7 @@ namespace nap
         // Frame queue
         rs2::frame_queue mFrameQueue;
 
+        // rs2 configuration
         rs2::config mConfig;
     };
 
@@ -62,46 +63,30 @@ namespace nap
     RealSenseDevice::~RealSenseDevice(){}
 
 
+    bool RealSenseDevice::init(utility::ErrorState &errorState)
+    {
+        if(!handleError(mService.registerDevice(this, errorState), "Cannot register device", errorState))
+            return mAllowFailure;
+
+        return true;
+    }
+
+
     bool RealSenseDevice::start(utility::ErrorState &errorState)
     {
-        /**
-         * Handle error lambda
-         * Fills error state and returns false upon failure
-         * If failure is allowed, still return false but only log error message
-         */
-        auto handle_error = [this, &errorState](bool successCondition, const std::string& errorMessage) mutable -> bool
-        {
-            if(!successCondition)
-            {
-                if(mAllowFailure)
-                {
-                    nap::Logger::error(*this, errorMessage);
-                }else
-                {
-                    errorState.fail(errorMessage);
-                }
-
-                return false;
-            }
-
-            return true;
-        };
-
         if(!mRun.load())
         {
             mImplementation = std::make_unique<Impl>();
             mImplementation->mFrameQueue = rs2::frame_queue(mMaxFrameSize);
 
-            if(!handle_error(mService.registerDevice(this, errorState), "Cannot register device"))
-                return mAllowFailure;
-
-            if(!handle_error(!mService.getConnectedSerialNumbers().empty(), "No RealSense devices connected!"))
+            if(!handleError(!mService.getConnectedSerialNumbers().empty(), "No RealSense devices connected!", errorState))
                 return mAllowFailure;
 
             if(!mSerial.empty())
             {
-                if(!handle_error(mService.hasSerialNumber(mSerial),
-                                 utility::stringFormat("Device with serial number %s is not connected", mSerial.c_str())))
+                if(!handleError(mService.hasSerialNumber(mSerial),
+                                utility::stringFormat("Device with serial number %s is not connected", mSerial.c_str()),
+                                errorState))
                     return mAllowFailure;
             }
 
@@ -161,16 +146,16 @@ namespace nap
                 mCameraInfo.mProductLine = std::string(mImplementation->mPipe.get_active_profile().get_device().get_info(rs2_camera_info::RS2_CAMERA_INFO_PRODUCT_LINE));
             }catch(const rs2::error& e)
             {
-                handle_error(false, utility::stringFormat("RealSense error calling %s(%s)\n     %s,",
-                                                          e.get_failed_function().c_str(),
-                                                          e.get_failed_args().c_str(),
-                                                          e.what()));
+                handleError(false, utility::stringFormat("RealSense error calling %s(%s)\n     %s,",
+                                                         e.get_failed_function().c_str(),
+                                                         e.get_failed_args().c_str(),
+                                                         e.what()), errorState);
                 return mAllowFailure;
 
             }
             catch(const std::exception& e)
             {
-                handle_error(false, e.what());
+                handleError(false, e.what(), errorState);
                 return mAllowFailure;
             }
 
@@ -181,7 +166,7 @@ namespace nap
             return true;
         }
 
-        handle_error(false, "RealSenseDevice already started.");
+        handleError(false, "RealSenseDevice already started.", errorState);
 
         return mAllowFailure;
     }
@@ -213,11 +198,27 @@ namespace nap
             }
         }
 
-        // Remove the device for now, will be added again in start
-        mService.removeDevice(this);
-
         // Start
         return start(errorState);
+    }
+
+
+    bool RealSenseDevice::handleError(bool successCondition, const std::string& errorMessage, utility::ErrorState& errorState)
+    {
+        if(!successCondition)
+        {
+            if(mAllowFailure)
+            {
+                nap::Logger::error(*this, errorMessage);
+            }else
+            {
+                errorState.fail(errorMessage);
+            }
+
+            return false;
+        }
+
+        return true;
     }
 
 
@@ -249,6 +250,11 @@ namespace nap
             catch(const std::exception& e)
             {
                 nap::Logger::error(*this, e.what());
+            }
+
+            for(auto& frameset_listener : mFrameSetListeners)
+            {
+                frameset_listener->clear();
             }
 
             mIsConnected = false;

@@ -151,6 +151,29 @@ namespace nap
     }
 
 
+    void RealSenseRenderFramesComponentInstance::clear()
+    {
+        for(auto& description : mRenderDescriptions)
+        {
+            auto& render_texture = mRenderTextures.find(description.mStreamType)->second;
+
+            render_texture->mWidth = 1;
+            render_texture->mHeight = 1;
+            render_texture->mClearColor = { 0, 0, 0, 0 };
+            render_texture->mUsage = ETextureUsage::DynamicWrite;
+            render_texture->mColorSpace = EColorSpace::Linear;
+
+            utility::ErrorState error_state;
+            bool success = render_texture->init(error_state);
+
+            if(!success)
+            {
+                nap::Logger::error(error_state.toString());
+            }
+        }
+    }
+
+
     RenderTexture2D& RealSenseRenderFramesComponentInstance::getRenderTexture(ERealSenseStreamType streamType) const
     {
         assert(mRenderTextures.find(streamType)!=mRenderTextures.end());

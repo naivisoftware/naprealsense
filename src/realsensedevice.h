@@ -66,6 +66,8 @@ namespace nap
          */
         virtual ~RealSenseDevice();
 
+        virtual bool init(utility::ErrorState& errorState) override;
+
         /**
          * Called when device needs to start
          * @param errorState contains any errors
@@ -115,6 +117,10 @@ namespace nap
          */
         const RealSenseCameraInfo& getCameraInfo() const{ return mCameraInfo; }
 
+        /**
+         * Returns whether current device is connected
+         * @return true on connected
+         */
         bool getIsConnected() const{ return mIsConnected; }
 
         // properties
@@ -123,6 +129,19 @@ namespace nap
         std::vector<ResourcePtr<RealSenseStreamDescription>> mStreams; ///< Property: 'Streams' settings for desired streams
         bool mAllowFailure = false; ///< Property: 'AllowFailure' return init success upon init failure
     private:
+        /**
+         * Handles error, when device is allowed to fail, will return true and log the error, otherwise it will return false
+         * preventing successful app initialization
+         * @param successCondition the success condition
+         * @param errorMessage corresponding error message
+         * @param errorState errorState struct to full
+         * @return true on success, false on error
+         */
+        bool handleError(bool successCondition, const std::string& errorMessage, utility::ErrorState& errorState);
+
+        /**
+         * The threaded process function
+         */
         void process();
 
         std::future<void>		mCaptureTask;

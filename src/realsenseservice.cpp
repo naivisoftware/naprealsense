@@ -27,11 +27,15 @@ namespace nap
     // RealSenseService
     //////////////////////////////////////////////////////////////////////////
 
+    struct RealSenseService::Impl
+    {
+    public:
+        rs2::context mContext;
+    };
 
 	RealSenseService::RealSenseService(ServiceConfiguration* configuration) :
 		Service(configuration)
 	{
-
 	}
 
 
@@ -49,9 +53,12 @@ namespace nap
 	{
         try
         {
+            // create the rs2 context
+            mImpl = std::make_unique<Impl>();
+
+            // Get a snapshot of currently connected devices
             std::vector<std::string> serials;
-            rs2::context ctx;
-            auto list = ctx.query_devices(); // Get a snapshot of currently connected devices
+            auto list = mImpl->mContext.query_devices();
 
             nap::Logger::info("There are %d connected RealSense devices.", list.size());
             for(size_t i = 0 ; i < list.size(); i++)
@@ -64,6 +71,8 @@ namespace nap
 
                 serials.emplace_back(std::string(device.get_info(RS2_CAMERA_INFO_SERIAL_NUMBER)));
             }
+
+            // set the serial numbers
             setSerialNumbers(serials);
         }catch(const rs2::error& e)
         {
@@ -78,8 +87,9 @@ namespace nap
                                                      e.what()));
         }
 
+        // launch the query devices task
         mRun.store(true);
-        mQueryDevicesTask = std::async(std::launch::async, std::bind(&RealSenseService::queryDeviceTask, this));
+        mQueryDevicesTask = std::async(std::launch::async, [this] { queryDeviceTask(); });
 
 		return true;
 	}
@@ -145,21 +155,14 @@ namespace nap
     void RealSenseService::acquireSerialNumbers(std::vector<std::string> &serials)
     {
         std::lock_guard<std::mutex> lock(mMutex);
-        for(const auto& serial : mConnectedSerialNumbers)
-        {
-            serials.emplace_back(serial);
-        }
+        serials = mConnectedSerialNumbers;
     }
 
 
     void RealSenseService::setSerialNumbers(const std::vector<std::string> &serials)
     {
         std::lock_guard<std::mutex> lock(mMutex);
-        mConnectedSerialNumbers.clear();
-        for(const auto& serial : serials)
-        {
-            mConnectedSerialNumbers.emplace_back(serial);
-        }
+        mConnectedSerialNumbers = serials;
     }
 
 
@@ -171,15 +174,22 @@ namespace nap
 
             try
             {
+                // First acquire previously connected serials of connected devices
                 std::vector<std::string> serials;
                 acquireSerialNumbers(serials);
 
-                rs2::context ctx;
-                auto list = ctx.query_devices(); // Get a snapshot of currently connected devices
+                // Get a snapshot of currently connected devices
+                auto list = mImpl->mContext.query_devices();
 
+                // create lists of devices to either stop or restart, they will be pushed to the concurrent queue later
                 std::vector<std::string> found_devices;
                 std::vector<std::string> devices_to_restart;
                 std::vector<std::string> devices_to_stop;
+
+                /**
+                 * Iterate over connected serials and look if any new devices have been added
+                 * If so, add them to the devices to restart
+                 */
                 for(size_t i = 0 ; i < list.size(); i++)
                 {
                     rs2::device device = list[i];
@@ -191,13 +201,15 @@ namespace nap
                     });
                     if(it == serials.end())
                     {
-                        nap::Logger::info(utility::stringFormat("new device %s", serial.c_str()));
+                        nap::Logger::info(utility::stringFormat("New RealSense device connected : %s", serial.c_str()));
                         serials.emplace_back(serial);
-
                         devices_to_restart.emplace_back(serial);
                     }
                 }
 
+                /**
+                 * Iterate over previous serials and see if a device has been disconnected or disappeared
+                 */
                 auto c_it = serials.begin();
                 while(c_it != serials.end())
                 {
@@ -208,7 +220,7 @@ namespace nap
                     }) != found_devices.end();
                     if(!found)
                     {
-                        nap::Logger::info(utility::stringFormat("RealSense Camera disconnected %s", serial.c_str()));
+                        nap::Logger::info(utility::stringFormat("RealSense device disconnected %s", serial.c_str()));
                         devices_to_stop.emplace_back(serial);
                         c_it = serials.erase(c_it);
                     }else
@@ -217,11 +229,14 @@ namespace nap
                     }
                 }
 
+                // set the new serial numbers
                 setSerialNumbers(serials);
 
+                // push devices to stop in the mDevicesToStop concurrent queue, they will be stopped on main thread
                 for(const auto& device_to_stop : devices_to_stop)
                     mDevicesToStop.enqueue(device_to_stop);
 
+                // push devices to (re)start in the mDevicesToRestart concurrent queue, they will be (re)started on main thread
                 for(const auto& device_to_restart : devices_to_restart)
                     mDevicesToRestart.enqueue(device_to_restart);
             }catch(const rs2::error& e)

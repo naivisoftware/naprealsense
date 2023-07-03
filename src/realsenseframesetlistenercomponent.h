@@ -86,6 +86,11 @@ namespace nap
          * Called from RealSense device upon receiving a new frameset, called from RealSense processing thread
          */
         virtual void trigger(RealSenseDevice* device, const rs2::frameset& frameset) = 0;
+
+        /**
+         * Called from RealSense device whenever a device is stopped
+         */
+        virtual void clear(){}
     protected:
         /**
          * internal initialization method called from init
