@@ -103,4 +103,13 @@ namespace nap
         assert(it != mFrameSetListeners.end()); // device does not exist
         mFrameSetListeners.erase(it);
     }
+
+
+    void RealSenseFilterStackComponentInstance::clear()
+    {
+        for(auto& frameset_listener : mFrameSetListeners)
+        {
+            frameset_listener->clear();
+        }
+    }
 }

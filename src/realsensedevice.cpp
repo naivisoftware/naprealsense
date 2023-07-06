@@ -160,7 +160,7 @@ namespace nap
             }
 
             mRun.store(true);
-            mCaptureTask = std::async(std::launch::async, std::bind(&RealSenseDevice::process, this));
+            mCaptureTask = std::async(std::launch::async, [this] { process(); });
             mIsConnected = true;
 
             return true;
@@ -256,6 +256,8 @@ namespace nap
             {
                 frameset_listener->clear();
             }
+
+            mCameraIntrinsics.clear();
 
             mIsConnected = false;
         }

@@ -179,7 +179,8 @@ namespace nap
                 acquireSerialNumbers(serials);
 
                 // Get a snapshot of currently connected devices
-                auto list = mImpl->mContext.query_devices();
+                rs2::context ctx;
+                auto list = ctx.query_devices();
 
                 // create lists of devices to either stop or restart, they will be pushed to the concurrent queue later
                 std::vector<std::string> found_devices;

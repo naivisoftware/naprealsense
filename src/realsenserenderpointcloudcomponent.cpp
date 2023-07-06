@@ -78,7 +78,8 @@ namespace nap
     void RealSenseRenderPointCloudComponentInstance::update(double deltaTime)
     {
         mReady = mFramesRenderer->isRenderTextureInitialized(ERealSenseStreamType::REALSENSE_STREAMTYPE_DEPTH) &&
-                mFramesRenderer->isRenderTextureInitialized(ERealSenseStreamType::REALSENSE_STREAMTYPE_COLOR);
+                mFramesRenderer->isRenderTextureInitialized(ERealSenseStreamType::REALSENSE_STREAMTYPE_COLOR) &&
+                mDevice->getIsConnected();
         if(!mReady)
             return;
 

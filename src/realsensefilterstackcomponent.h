@@ -69,6 +69,8 @@ namespace nap
          * @param frame
          */
         virtual void trigger(RealSenseDevice* device, const rs2::frameset& frameset) override;
+
+        void clear() override;
     protected:
         /**
          * internal initialization method called from init
