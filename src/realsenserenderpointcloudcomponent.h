@@ -21,6 +21,7 @@ namespace nap
      */
     class NAPAPI RealSenseRenderPointCloudComponent : public RenderableMeshComponent
     {
+        friend class RealSenseRenderPointCloudComponentInstance;
     RTTI_ENABLE(RenderableMeshComponent)
     DECLARE_COMPONENT(RealSenseRenderPointCloudComponent, RealSenseRenderPointCloudComponentInstance)
     public:
@@ -34,12 +35,16 @@ namespace nap
          */
         virtual ~RealSenseRenderPointCloudComponent();
 
+        RealSenseRenderPointCloudComponentInstance* getInstance();
+
         ERealSenseStreamType mCameraIntrinsicsStreamType = ERealSenseStreamType::REALSENSE_STREAMTYPE_DEPTH;
         ResourcePtr<RealSenseDevice> mDevice; ///< Property: 'Device' the device this component renders the point cloud from
         ComponentPtr<TransformComponent> mCameraTransform; ///< Property: 'CameraTransform' the camera transform
         ComponentPtr<RealSenseRenderFramesComponent> mFramesRenderer; ///< Property: 'FramesRenderer'
         float mPointSize = 1.0f; ///< Property: 'PointSize'
         float mMaxDistance = 5.0f; ///< Property: 'MaxDistance'
+    private:
+        RealSenseRenderPointCloudComponentInstance* mInstance = nullptr;
     };
 
     class NAPAPI RealSenseRenderPointCloudComponentInstance : public RenderableMeshComponentInstance

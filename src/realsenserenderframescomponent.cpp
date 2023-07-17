@@ -11,6 +11,7 @@ RTTI_END_STRUCT
 RTTI_BEGIN_CLASS(nap::RealSenseRenderFramesComponent)
     RTTI_PROPERTY("FilterStack", &nap::RealSenseRenderFramesComponent::mFilterStack, nap::rtti::EPropertyMetaData::Default)
     RTTI_PROPERTY("RenderDescriptions", &nap::RealSenseRenderFramesComponent::mRenderDescriptions, nap::rtti::EPropertyMetaData::Embedded)
+    RTTI_PROPERTY("Enabled", &nap::RealSenseRenderFramesComponent::mEnabled, nap::rtti::EPropertyMetaData::Default)
 RTTI_END_CLASS
 
 RTTI_BEGIN_CLASS_NO_DEFAULT_CONSTRUCTOR(nap::RealSenseRenderFramesComponentInstance)
@@ -74,8 +75,9 @@ namespace nap
         mResource = getComponent<RealSenseRenderFramesComponent>();
         mResource->mInstance = this;
         mRenderDescriptions = mResource->mRenderDescriptions;
+        mEnabled.store(mResource->mEnabled);
 
-        for(auto description : mRenderDescriptions)
+        for(const auto& description : mRenderDescriptions)
         {
             auto render_texture = std::make_unique<RenderTexture2D>(*getEntityInstance()->getCore());
             render_texture->mWidth = 0;
@@ -106,39 +108,42 @@ namespace nap
 
     void RealSenseRenderFramesComponentInstance::update(double deltaTime)
     {
-        rs2::frameset frameset;
-        if(mImplementation->mFrameQueue.poll_for_frame(&frameset))
+        if(mEnabled.load())
         {
-            for(auto& description : mRenderDescriptions)
+            rs2::frameset frameset;
+            if(mImplementation->mFrameQueue.poll_for_frame(&frameset))
             {
-                auto frame = frameset.first(static_cast<rs2_stream>(description.mStreamType));
-                assert(frame.is<rs2::video_frame>());
-
-                ERealSenseStreamType stream_type = static_cast<ERealSenseStreamType>(frame.get_profile().stream_type());
-                assert(mRenderTextures.find(stream_type)!=mRenderTextures.end());
-                auto& render_texture = mRenderTextures.find(stream_type)->second;
-                const auto &video_frame = frame.as<rs2::video_frame>();
-
-                // Ensure dimensions are the same
-                glm::vec2 tex_size = render_texture->getSize();
-
-                if(video_frame.get_width() != tex_size.x || video_frame.get_height() != tex_size.y)
+                for(auto& description : mRenderDescriptions)
                 {
-                    render_texture->mWidth = video_frame.get_width();
-                    render_texture->mHeight = video_frame.get_height();
-                    render_texture->mClearColor = { 0, 0, 0 , 0 };
-                    render_texture->mColorSpace = EColorSpace::Linear;
-                    render_texture->mFormat = description.mFormat;
-                    render_texture->mUsage = ETextureUsage::DynamicWrite;
+                    auto frame = frameset.first(static_cast<rs2_stream>(description.mStreamType));
+                    assert(frame.is<rs2::video_frame>());
 
-                    utility::ErrorState error_state;
-                    mInitializationMap[stream_type] = render_texture->init(error_state);
-                }
+                    ERealSenseStreamType stream_type = static_cast<ERealSenseStreamType>(frame.get_profile().stream_type());
+                    assert(mRenderTextures.find(stream_type)!=mRenderTextures.end());
+                    auto& render_texture = mRenderTextures.find(stream_type)->second;
+                    const auto &video_frame = frame.as<rs2::video_frame>();
 
-                if(mInitializationMap[stream_type])
-                {
-                    // Update textures on GPU
-                    mRenderTextures[stream_type]->update(video_frame.get_data(), mRenderTextures[stream_type]->getDescriptor());
+                    // Ensure dimensions are the same
+                    glm::vec2 tex_size = render_texture->getSize();
+
+                    if(video_frame.get_width() != tex_size.x || video_frame.get_height() != tex_size.y)
+                    {
+                        render_texture->mWidth = video_frame.get_width();
+                        render_texture->mHeight = video_frame.get_height();
+                        render_texture->mClearColor = { 0, 0, 0 , 0 };
+                        render_texture->mColorSpace = EColorSpace::Linear;
+                        render_texture->mFormat = description.mFormat;
+                        render_texture->mUsage = ETextureUsage::DynamicWrite;
+
+                        utility::ErrorState error_state;
+                        mInitializationMap[stream_type] = render_texture->init(error_state);
+                    }
+
+                    if(mInitializationMap[stream_type])
+                    {
+                        // Update textures on GPU
+                        mRenderTextures[stream_type]->update(video_frame.get_data(), mRenderTextures[stream_type]->getDescriptor());
+                    }
                 }
             }
         }
@@ -147,7 +152,10 @@ namespace nap
 
     void RealSenseRenderFramesComponentInstance::trigger(RealSenseDevice* device, const rs2::frameset &frameset)
     {
-        mImplementation->mFrameQueue.enqueue(frameset);
+        if(mEnabled.load())
+        {
+            mImplementation->mFrameQueue.enqueue(frameset);
+        }
     }
 
 
@@ -170,5 +178,17 @@ namespace nap
             return mInitializationMap.find(streamType)->second;
         }
         return false;
+    }
+
+
+    void RealSenseRenderFramesComponentInstance::setEnabled(bool enable)
+    {
+        mEnabled.store(enable);
+    }
+
+
+    bool RealSenseRenderFramesComponentInstance::getEnabled()
+    {
+        return mEnabled.load();
     }
 }

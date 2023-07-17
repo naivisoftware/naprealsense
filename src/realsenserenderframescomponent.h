@@ -45,6 +45,7 @@ namespace nap
 
         ComponentPtr<RealSenseFilterStackComponent> mFilterStack;
         std::vector<RealSenseRenderFrameDescription> mRenderDescriptions;
+        bool mEnabled = true;
     private:
         RealSenseRenderFramesComponentInstance* mInstance;
     };
@@ -90,6 +91,10 @@ namespace nap
          * Called from RealSense device whenever a device is stopped
          */
         virtual void clear() override;
+
+        void setEnabled(bool enable);
+
+        bool getEnabled();
     protected:
         /**
          * internal initialization method called from init
@@ -120,5 +125,7 @@ namespace nap
 
         struct Impl;
         std::unique_ptr<Impl> mImplementation;
+
+        std::atomic_bool mEnabled;
     };
 }

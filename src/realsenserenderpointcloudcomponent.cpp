@@ -56,11 +56,15 @@ namespace nap
         if(!RenderableMeshComponentInstance::init(errorState))
             return false;
 
+        // copy resources
         auto* resource = getComponent<RealSenseRenderPointCloudComponent>();
         mDevice = resource->mDevice.get();
         mPointSize = resource->mPointSize;
         mMaxDistance = resource->mMaxDistance;
         mCameraIntrinsicsStreamType = resource->mCameraIntrinsicsStreamType;
+
+        // set instance
+        resource->mInstance = this;
 
         return true;
     }
@@ -75,8 +79,17 @@ namespace nap
     }
 
 
+    RealSenseRenderPointCloudComponentInstance* RealSenseRenderPointCloudComponent::getInstance()
+    {
+        return mInstance;
+    }
+
+
     void RealSenseRenderPointCloudComponentInstance::update(double deltaTime)
     {
+        if(!isVisible())
+            return;
+
         mReady = mFramesRenderer->isRenderTextureInitialized(ERealSenseStreamType::REALSENSE_STREAMTYPE_DEPTH) &&
                 mFramesRenderer->isRenderTextureInitialized(ERealSenseStreamType::REALSENSE_STREAMTYPE_COLOR) &&
                 mDevice->getIsConnected();
