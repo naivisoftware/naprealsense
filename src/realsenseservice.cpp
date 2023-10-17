@@ -68,6 +68,8 @@ namespace nap
                 nap::Logger::info("RealSense device %i, an %s", i,  device.get_info(RS2_CAMERA_INFO_NAME));
                 nap::Logger::info("    Serial number: %s", device.get_info(RS2_CAMERA_INFO_SERIAL_NUMBER));
                 nap::Logger::info("    Firmware version: %s", device.get_info(RS2_CAMERA_INFO_FIRMWARE_VERSION));
+                nap::Logger::info("    USB description: %s", device.get_info(RS2_CAMERA_INFO_USB_TYPE_DESCRIPTOR));
+
 
                 serials.emplace_back(std::string(device.get_info(RS2_CAMERA_INFO_SERIAL_NUMBER)));
             }
@@ -187,10 +189,9 @@ namespace nap
                 std::vector<std::string> devices_to_restart;
                 std::vector<std::string> devices_to_stop;
 
-                /**
-                 * Iterate over connected serials and look if any new devices have been added
-                 * If so, add them to the devices to restart
-                 */
+                //
+                // Iterate over connected serials and look if any new devices have been added
+                // If so, add them to the devices to restart
                 for(size_t i = 0 ; i < list.size(); i++)
                 {
                     rs2::device device = list[i];
@@ -208,9 +209,8 @@ namespace nap
                     }
                 }
 
-                /**
-                 * Iterate over previous serials and see if a device has been disconnected or disappeared
-                 */
+                //
+                // Iterate over previous serials and see if a device has been disconnected or disappeared
                 auto c_it = serials.begin();
                 while(c_it != serials.end())
                 {

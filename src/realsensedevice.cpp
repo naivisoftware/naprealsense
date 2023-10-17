@@ -17,6 +17,8 @@ RTTI_BEGIN_CLASS_NO_DEFAULT_CONSTRUCTOR(nap::RealSenseDevice)
     RTTI_PROPERTY("MaxFrameSize", &nap::RealSenseDevice::mMaxFrameSize, nap::rtti::EPropertyMetaData::Default)
     RTTI_PROPERTY("Streams", &nap::RealSenseDevice::mStreams, nap::rtti::EPropertyMetaData::Embedded)
     RTTI_PROPERTY("AllowFailure", &nap::RealSenseDevice::mAllowFailure, nap::rtti::EPropertyMetaData::Default)
+    RTTI_PROPERTY("WaitForFramesTimeoutMS", &nap::RealSenseDevice::mWaitForFramesTimeoutMS, nap::rtti::EPropertyMetaData::Default)
+    RTTI_PROPERTY("MinUSBVersion", &nap::RealSenseDevice::mMinimalRequiredUSBType, nap::rtti::EPropertyMetaData::Default)
 RTTI_END_CLASS
 
 namespace nap
@@ -90,6 +92,9 @@ namespace nap
                     return mAllowFailure;
             }
 
+            // disable all streams
+            mImplementation->mConfig.disable_all_streams();
+
             std::vector<ERealSenseStreamType> stream_types;
             for(const auto& stream : mStreams)
             {
@@ -144,6 +149,15 @@ namespace nap
                 mCameraInfo.mFirmware = std::string(mImplementation->mPipe.get_active_profile().get_device().get_info(rs2_camera_info::RS2_CAMERA_INFO_FIRMWARE_VERSION));
                 mCameraInfo.mProductID = std::string(mImplementation->mPipe.get_active_profile().get_device().get_info(rs2_camera_info::RS2_CAMERA_INFO_PRODUCT_ID));
                 mCameraInfo.mProductLine = std::string(mImplementation->mPipe.get_active_profile().get_device().get_info(rs2_camera_info::RS2_CAMERA_INFO_PRODUCT_LINE));
+                mCameraInfo.mUSBDescription = std::string(mImplementation->mPipe.get_active_profile().get_device().get_info(rs2_camera_info::RS2_CAMERA_INFO_USB_TYPE_DESCRIPTOR));
+
+                float usb_version = std::stof(mCameraInfo.mUSBDescription);
+                if(usb_version < mMinimalRequiredUSBType)
+                {
+                    handleError(false, utility::stringFormat("USB type invalid, must be equal or higher then %.2f, got %.2f", mMinimalRequiredUSBType, usb_version), errorState);
+                    mImplementation->mPipe.stop();
+                    return mAllowFailure;
+                }
             }catch(const rs2::error& e)
             {
                 handleError(false, utility::stringFormat("RealSense error calling %s(%s)\n     %s,",
@@ -301,14 +315,19 @@ namespace nap
 
                 // poll for new frameset
                 rs2::frameset data;
-                if(mImplementation->mPipe.poll_for_frames(&data))
+                if(mImplementation->mPipe.try_wait_for_frames(&data, mWaitForFramesTimeoutMS))
                 {
                     std::lock_guard l(mFrameSetListenerMutex);
                     for(auto* frameset_listener : mFrameSetListeners)
                     {
                         frameset_listener->trigger(this, data);
                     }
+                }else
+                {
+                    nap::Logger::warn("%s: wait for frames timeout occurred!", mSerial.c_str());
                 }
+
+                std::this_thread::sleep_for(std::chrono::milliseconds(20));
             }
         }catch(const rs2::error& e)
         {

@@ -91,5 +91,6 @@ namespace nap
         std::string mFirmware;
         std::string mProductID;
         std::string mProductLine;
+        std::string mUSBDescription;
     };
 }
