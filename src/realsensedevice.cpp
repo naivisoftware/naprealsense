@@ -17,7 +17,6 @@ RTTI_BEGIN_CLASS_NO_DEFAULT_CONSTRUCTOR(nap::RealSenseDevice)
     RTTI_PROPERTY("MaxFrameSize", &nap::RealSenseDevice::mMaxFrameSize, nap::rtti::EPropertyMetaData::Default)
     RTTI_PROPERTY("Streams", &nap::RealSenseDevice::mStreams, nap::rtti::EPropertyMetaData::Embedded)
     RTTI_PROPERTY("AllowFailure", &nap::RealSenseDevice::mAllowFailure, nap::rtti::EPropertyMetaData::Default)
-    RTTI_PROPERTY("WaitForFramesTimeoutMS", &nap::RealSenseDevice::mWaitForFramesTimeoutMS, nap::rtti::EPropertyMetaData::Default)
     RTTI_PROPERTY("MinUSBVersion", &nap::RealSenseDevice::mMinimalRequiredUSBType, nap::rtti::EPropertyMetaData::Default)
 RTTI_END_CLASS
 
@@ -158,6 +157,9 @@ namespace nap
                     mImplementation->mPipe.stop();
                     return mAllowFailure;
                 }
+
+                // store depth scale
+                mLatestDepthScale.store(mImplementation->mPipe.get_active_profile().get_device().first<rs2::depth_sensor>().get_depth_scale());
             }catch(const rs2::error& e)
             {
                 handleError(false, utility::stringFormat("RealSense error calling %s(%s)\n     %s,",
@@ -310,12 +312,9 @@ namespace nap
         {
             while(mRun.load())
             {
-                // store depth scale
-                mLatestDepthScale.store(mImplementation->mPipe.get_active_profile().get_device().first<rs2::depth_sensor>().get_depth_scale());
-
                 // poll for new frameset
                 rs2::frameset data;
-                if(mImplementation->mPipe.try_wait_for_frames(&data, mWaitForFramesTimeoutMS))
+                if(mImplementation->mPipe.poll_for_frames(&data))
                 {
                     std::lock_guard l(mFrameSetListenerMutex);
                     for(auto* frameset_listener : mFrameSetListeners)
@@ -326,8 +325,6 @@ namespace nap
                 {
                     nap::Logger::warn("%s: wait for frames timeout occurred!", mSerial.c_str());
                 }
-
-                std::this_thread::sleep_for(std::chrono::milliseconds(20));
             }
         }catch(const rs2::error& e)
         {

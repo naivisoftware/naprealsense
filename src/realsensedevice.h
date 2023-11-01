@@ -128,7 +128,6 @@ namespace nap
         int mMaxFrameSize = 5; ///< Property: 'MaxFrameSize' maximum size of frame queue
         std::vector<ResourcePtr<RealSenseStreamDescription>> mStreams; ///< Property: 'Streams' settings for desired streams
         bool mAllowFailure = false; ///< Property: 'AllowFailure' return init success upon init failure
-        int mWaitForFramesTimeoutMS = 5000; ///< Property: 'WaitForFramesTimeoutMS' amount of ms to wait for frames
         float mMinimalRequiredUSBType = 3.0f; ///< Property: 'MinimumUSBVersion'
     private:
         /**
