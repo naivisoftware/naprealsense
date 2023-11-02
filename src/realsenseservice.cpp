@@ -75,7 +75,13 @@ namespace nap
             }
 
             // set the serial numbers
-            setSerialNumbers(serials);
+            mConnectedSerialNumbers = serials;
+
+            //
+            mImpl->mContext.set_devices_changed_callback([this](rs2::event_information& info)
+            {
+                mQueryDevices.store(true);
+            });
         }catch(const rs2::error& e)
         {
             nap::Logger::error(utility::stringFormat("Error query RealSense devices : %s(%s)\n      %s",
@@ -89,100 +95,20 @@ namespace nap
                                                      e.what()));
         }
 
-        // launch the query devices task
-        mRun.store(true);
-        mQueryDevicesTask = std::async(std::launch::async, [this] { queryDeviceTask(); });
-
 		return true;
 	}
 
 
 	void RealSenseService::update(double deltaTime)
 	{
-        // Check if a device needs to stop because it is no longer available
-        std::string device_to_stop;
-        while(mDevicesToStop.try_dequeue(device_to_stop))
+        if(mQueryDevices.load())
         {
-            for(const auto& device : mDevices)
-            {
-                if(device->getIsConnected() && device->getCameraInfo().mSerial == device_to_stop)
-                {
-                    device->stop();
-                }
-            }
-        }
-
-        // Check if a realsense camera is (re)added, if so, find a matching RealSenseDevice
-        std::string device_to_restart;
-        while(mDevicesToRestart.try_dequeue(device_to_restart))
-        {
-            // Iterate trough registered devices
-            for(const auto& device : mDevices)
-            {
-                if(!device->getIsConnected() && // device is disconnected
-                    (device->getCameraInfo().mSerial == device_to_restart || // and serial matches the device to restart
-                    device->mSerial.empty())) // OR serial is empty, in which case it maybe can make a claim on this device
-                {
-                    // First check if any other devices make a claim on this device
-                    bool skip = false;
-                    for(auto& other_device : mDevices)
-                    {
-                        if(other_device!=device)
-                        {
-                            if(other_device->mSerial == device_to_restart || // another device has a claim
-                                                                             // OR, other device is disconnected and was previously connected to this serial
-                                (other_device->getCameraInfo().mSerial == device_to_restart && !other_device->getIsConnected()))
-                            {
-                                skip = true;
-                                break;
-                            }
-                        }
-                    }
-                    if(skip)
-                        continue;
-
-                    // Restart this device
-                    nap::Logger::info("Restarting device : %s", device_to_restart.c_str());
-                    utility::ErrorState error_state;
-                    if(!device->restart(error_state))
-                    {
-                        nap::Logger::error("Error restarting device %s : %s", device_to_restart.c_str(), error_state.toString().c_str());
-                    }
-                }
-            }
-        }
-	}
-
-
-    void RealSenseService::acquireSerialNumbers(std::vector<std::string> &serials)
-    {
-        std::lock_guard<std::mutex> lock(mMutex);
-        serials = mConnectedSerialNumbers;
-    }
-
-
-    void RealSenseService::setSerialNumbers(const std::vector<std::string> &serials)
-    {
-        std::lock_guard<std::mutex> lock(mMutex);
-        mConnectedSerialNumbers = serials;
-    }
-
-
-    void RealSenseService::queryDeviceTask()
-    {
-        while(mRun.load())
-        {
-            std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<long>(mQueryIntervalSeconds * 1000)));
+            nap::Logger::info("RealSenseService: %s", "Device change detected");
+            mQueryDevices.store(false);
 
             try
             {
-                // First acquire previously connected serials of connected devices
-                std::vector<std::string> serials;
-                acquireSerialNumbers(serials);
-
-                // Get a snapshot of currently connected devices
-                rs2::context ctx;
-                auto list = ctx.query_devices();
+                auto list = mImpl->mContext.query_devices();
 
                 // create lists of devices to either stop or restart, they will be pushed to the concurrent queue later
                 std::vector<std::string> found_devices;
@@ -197,22 +123,22 @@ namespace nap
                     rs2::device device = list[i];
                     auto serial = std::string(device.get_info(RS2_CAMERA_INFO_SERIAL_NUMBER));
                     found_devices.emplace_back(serial);
-                    auto it = std::find_if(serials.begin(), serials.end(), [serial](const std::string& other)
+                    auto it = std::find_if(mConnectedSerialNumbers.begin(), mConnectedSerialNumbers.end(), [serial](const std::string& other)
                     {
                         return other == serial;
                     });
-                    if(it == serials.end())
+                    if(it == mConnectedSerialNumbers.end())
                     {
                         nap::Logger::info(utility::stringFormat("New RealSense device connected : %s", serial.c_str()));
-                        serials.emplace_back(serial);
+                        mConnectedSerialNumbers.emplace_back(serial);
                         devices_to_restart.emplace_back(serial);
                     }
                 }
 
                 //
                 // Iterate over previous serials and see if a device has been disconnected or disappeared
-                auto c_it = serials.begin();
-                while(c_it != serials.end())
+                auto c_it = mConnectedSerialNumbers.begin();
+                while(c_it != mConnectedSerialNumbers.end())
                 {
                     auto serial = *(c_it);
                     auto found = std::find_if(found_devices.begin(), found_devices.end(), [serial](const std::string& other)
@@ -223,23 +149,65 @@ namespace nap
                     {
                         nap::Logger::info(utility::stringFormat("RealSense device disconnected %s", serial.c_str()));
                         devices_to_stop.emplace_back(serial);
-                        c_it = serials.erase(c_it);
+                        c_it = mConnectedSerialNumbers.erase(c_it);
                     }else
                     {
                         c_it++;
                     }
                 }
 
-                // set the new serial numbers
-                setSerialNumbers(serials);
+                mConnectedSerialNumbers = found_devices;
 
-                // push devices to stop in the mDevicesToStop concurrent queue, they will be stopped on main thread
+                //  stop devices that need to stop
                 for(const auto& device_to_stop : devices_to_stop)
-                    mDevicesToStop.enqueue(device_to_stop);
+                {
+                    for(const auto& device : mDevices)
+                    {
+                        if(device->getIsConnected() && device->getCameraInfo().mSerial == device_to_stop)
+                        {
+                            device->stop();
+                        }
+                    }
+                }
 
-                // push devices to (re)start in the mDevicesToRestart concurrent queue, they will be (re)started on main thread
+                // restart devices that need to restart
                 for(const auto& device_to_restart : devices_to_restart)
-                    mDevicesToRestart.enqueue(device_to_restart);
+                {
+                    // Iterate trough registered devices
+                    for(const auto& device : mDevices)
+                    {
+                        if(!device->getIsConnected() && // device is disconnected
+                           (device->getCameraInfo().mSerial == device_to_restart || // and serial matches the device to restart
+                            device->mSerial.empty())) // OR serial is empty, in which case it maybe can make a claim on this device
+                        {
+                            // First check if any other devices make a claim on this device
+                            bool skip = false;
+                            for(auto& other_device : mDevices)
+                            {
+                                if(other_device!=device)
+                                {
+                                    if(other_device->mSerial == device_to_restart || // another device has a claim
+                                       // OR, other device is disconnected and was previously connected to this serial
+                                       (other_device->getCameraInfo().mSerial == device_to_restart && !other_device->getIsConnected()))
+                                    {
+                                        skip = true;
+                                        break;
+                                    }
+                                }
+                            }
+                            if(skip)
+                                continue;
+
+                            // Restart this device
+                            nap::Logger::info("Restarting device : %s", device_to_restart.c_str());
+                            utility::ErrorState error_state;
+                            if(!device->restart(error_state))
+                            {
+                                nap::Logger::error("Error restarting device %s : %s", device_to_restart.c_str(), error_state.toString().c_str());
+                            }
+                        }
+                    }
+                }
             }catch(const rs2::error& e)
             {
                 nap::Logger::error(utility::stringFormat("Error query RealSense devices : %s(%s)\n      %s",
@@ -253,14 +221,11 @@ namespace nap
                                                          e.what()));
             }
         }
-    }
+	}
 
 
 	void RealSenseService::shutdown()
 	{
-        mRun.store(false);
-        if(mQueryDevicesTask.valid())
-            mQueryDevicesTask.wait();
 	}
 
 
@@ -292,14 +257,11 @@ namespace nap
 
     bool RealSenseService::hasSerialNumber(const std::string& serialNumber)
     {
-        std::vector<std::string> serials;
-        acquireSerialNumbers(serials);
-
-        auto it = std::find_if(serials.begin(), serials.end(), [this, serialNumber](const std::string& other)
+        auto it = std::find_if(mConnectedSerialNumbers.begin(), mConnectedSerialNumbers.end(), [this, serialNumber](const std::string& other)
         {
             return other == serialNumber;
         });
-        return it != serials.end();
+        return it != mConnectedSerialNumbers.end();
     }
 
 

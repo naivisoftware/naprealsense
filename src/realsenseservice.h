@@ -89,38 +89,10 @@ namespace nap
          */
         void removeDevice(RealSenseDevice* device);
 
-        /**
-         * This task takes a snapshot of connected realsense devices on a different thread
-         * When a device has been added or removed, the correct stop/start calls to registered devices will occur on
-         * the main thread
-         */
-        void queryDeviceTask();
-
-        /**
-         * Acquires current connected serial numbers, thread-safe
-         * @param serials
-         */
-        void acquireSerialNumbers(std::vector<std::string>& serials);
-
-        /**
-         * Sets current connected serial numbers, thread-safe
-         * @param serials
-         */
-        void setSerialNumbers(const std::vector<std::string>& serials);
-
         // The query task
-        std::future<void>		mQueryDevicesTask;
-        std::atomic_bool        mRun = { false };
-
-        // interval of query task
-        const float mQueryIntervalSeconds = 1.0f;
-
-        // these concurrent queues hold serials of devices to (re)start or stop
-        moodycamel::ConcurrentQueue<std::string> mDevicesToRestart;
-        moodycamel::ConcurrentQueue<std::string> mDevicesToStop;
+        std::atomic_bool        mQueryDevices = { false };
 
         // conencted serial numbers with mutex
-        std::mutex mMutex;
         std::vector<std::string> mConnectedSerialNumbers;
 
         // current registered devices
