@@ -312,19 +312,32 @@ namespace nap
         {
             while(mRun.load())
             {
+                uint millis = 0;
+
                 // poll for new frameset
                 rs2::frameset data;
                 if(mImplementation->mPipe.poll_for_frames(&data))
                 {
+                    SteadyTimer timer;
+                    timer.start();
+
                     std::lock_guard l(mFrameSetListenerMutex);
                     for(auto* frameset_listener : mFrameSetListeners)
                     {
                         frameset_listener->trigger(this, data);
                     }
+
+                    millis = timer.getMillis().count();
                 }else
                 {
                     nap::Logger::warn("%s: wait for frames timeout occurred!", mSerial.c_str());
                 }
+
+                int wait = 20 - millis;
+                if(wait < 0)
+                    wait = 0;
+
+                std::this_thread::sleep_for(std::chrono::milliseconds(wait));
             }
         }catch(const rs2::error& e)
         {
