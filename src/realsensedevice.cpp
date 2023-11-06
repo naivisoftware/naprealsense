@@ -328,9 +328,6 @@ namespace nap
                     }
 
                     millis = timer.getMillis().count();
-                }else
-                {
-                    nap::Logger::warn("%s: wait for frames timeout occurred!", mSerial.c_str());
                 }
 
                 int wait = 20 - millis;
